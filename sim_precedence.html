@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 4: ลำดับการคำนวณ (Precedence) | GNR 1007</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#16306C; --navy-dark:#0d1f4d; --navy-light:#24408a;
+  --gold:#C9A227; --gold-light:#e8cf6f;
+  --bg:#eef1f8; --card:#ffffff;
+  --danger:#c0392b; --danger-bg:#fdeaea;
+  --success:#1e8449; --success-bg:#eafaf1;
+  --text:#1c2333; --muted:#657085; --radius:16px;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Noto Sans Thai','Sarabun',sans-serif;background:linear-gradient(180deg,#eef1f8,#f8f9fd 400px);color:var(--text);}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px;}
+header.top{background:linear-gradient(120deg,var(--navy-dark),var(--navy));color:#fff;padding:22px 20px;display:flex;align-items:center;gap:18px;box-shadow:0 4px 18px rgba(22,48,108,.25);}
+header.top img{height:56px;width:auto;border-radius:8px;background:#fff;padding:4px;}
+header.top .ttl{flex:1;}
+header.top h1{margin:0;font-size:1.35rem;font-weight:800;}
+header.top p{margin:4px 0 0;font-size:.85rem;opacity:.85;font-weight:500;}
+.badge{display:inline-block;background:var(--gold);color:var(--navy-dark);font-weight:700;font-size:.75rem;padding:3px 12px;border-radius:20px;margin-bottom:6px;}
+.card{background:var(--card);border-radius:var(--radius);padding:22px 24px;margin-top:22px;box-shadow:0 2px 14px rgba(22,48,108,.08);border:1px solid #e4e8f3;}
+.card h2{margin:0 0 10px;color:var(--navy);font-size:1.15rem;border-left:6px solid var(--gold);padding-left:12px;}
+.intro{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;}
+.intro p{flex:1;min-width:260px;line-height:1.85;margin:0;}
+.chip{background:#eef1f8;border-radius:10px;padding:10px 14px;font-size:.85rem;color:var(--navy-dark);font-weight:600;min-width:150px;text-align:center;}
+.chip b{display:block;font-size:1.05rem;color:var(--navy);}
+
+.inputRow{display:flex;gap:10px;flex-wrap:wrap;}
+input#exprInput{flex:1;min-width:240px;font-size:1.2rem;font-family:'Courier New',monospace;padding:12px 16px;border-radius:10px;border:2px solid #d7deee;font-weight:700;color:var(--navy-dark);}
+input#exprInput:focus{outline:none;border-color:var(--navy);}
+button.primary{background:var(--navy);color:#fff;border:none;padding:12px 26px;border-radius:10px;font-family:inherit;font-weight:700;font-size:.95rem;cursor:pointer;box-shadow:0 3px 10px rgba(22,48,108,.3);}
+button.primary:hover{background:var(--navy-light);}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.presets button{background:#f5f7fc;border:1.5px solid #dfe4f0;border-radius:20px;padding:7px 14px;font-family:'Courier New',monospace;font-size:.83rem;font-weight:700;color:var(--navy-dark);cursor:pointer;}
+.presets button:hover{background:#e6eaf6;}
+
+.errbox{background:var(--danger-bg);border:1.5px solid #f0b7b0;color:var(--danger);border-radius:10px;padding:12px 16px;margin-top:14px;font-weight:700;display:none;}
+
+.stage{display:none;margin-top:8px;}
+.exprDisplay{text-align:center;background:#0d1f4d;color:#fff;border-radius:14px;padding:26px 16px;font-family:'Courier New',monospace;font-size:1.7rem;font-weight:700;letter-spacing:.5px;line-height:1.6;word-break:break-word;}
+.exprDisplay .hl{background:var(--gold);color:var(--navy-dark);padding:2px 10px;border-radius:8px;}
+.stepInfo{text-align:center;margin-top:14px;font-size:1.05rem;font-weight:700;color:var(--navy-dark);min-height:28px;}
+.stepInfo .eq{color:var(--danger);}
+.navRow{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:16px;}
+.navRow button{background:#fff;border:2px solid var(--navy);color:var(--navy);font-weight:800;padding:9px 20px;border-radius:10px;cursor:pointer;font-family:inherit;}
+.navRow button:hover:not(:disabled){background:var(--navy);color:#fff;}
+.navRow button:disabled{opacity:.35;cursor:not-allowed;}
+.navRow .idx{font-weight:800;color:var(--navy-dark);min-width:90px;text-align:center;}
+.finalBox{margin-top:16px;text-align:center;background:var(--success-bg);border:1.5px solid #b8e2c8;border-radius:12px;padding:14px;font-weight:800;color:var(--success);font-size:1.15rem;display:none;}
+
+table.spec{width:100%;border-collapse:collapse;margin-top:8px;font-size:.88rem;}
+table.spec th,table.spec td{border:1px solid #dfe4f0;padding:9px 10px;text-align:center;}
+table.spec th{background:var(--navy);color:#fff;font-weight:700;}
+table.spec td.name{text-align:left;font-weight:700;color:var(--navy-dark);background:#f5f7fc;}
+
+.trap{background:var(--danger-bg);border:1.5px solid #f0b7b0;border-left:6px solid var(--danger);border-radius:12px;padding:14px 18px;margin-top:16px;}
+.trap b{color:var(--danger);}
+
+.quiz-item{border:1px solid #e4e8f3;border-radius:12px;padding:14px 16px;margin-bottom:14px;}
+.quiz-item p.q{font-weight:700;margin:0 0 10px;color:var(--navy-dark);}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.opts button{text-align:left;background:#f7f8fc;border:1.5px solid #dfe4f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:.87rem;cursor:pointer;color:var(--text);}
+.opts button:hover{border-color:var(--navy-light);}
+.opts button.correct{background:var(--success-bg);border-color:var(--success);color:var(--success);font-weight:700;}
+.opts button.wrong{background:var(--danger-bg);border-color:var(--danger);color:var(--danger);font-weight:700;}
+.fb{margin-top:8px;font-size:.85rem;font-weight:600;display:none;}
+
+.backHome{position:fixed;top:16px;right:16px;z-index:998;background:rgba(10,26,64,.9);color:#fff;text-decoration:none;font-weight:700;font-size:.8rem;padding:9px 18px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px);transition:.2s;}
+.backHome:hover{background:var(--gold);color:var(--navy-dark);}
+.labGate{position:fixed;inset:0;background:linear-gradient(135deg,rgba(10,26,64,.97),rgba(22,48,108,.97));z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+.labGateBox{background:#fff;border-radius:20px;padding:34px 30px;max-width:380px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.4);}
+.labGateIcon{font-size:3rem;margin-bottom:10px;}
+.labGateBox h2{color:var(--navy-dark);font-size:1.15rem;margin:0 0 10px;}
+.labGateBox p{color:var(--muted);font-size:.88rem;line-height:1.7;margin:0 0 16px;}
+#labGateCodeBox input{width:100%;padding:10px 14px;border-radius:10px;border:2px solid #d7deee;font-family:'Courier New',monospace;font-size:.95rem;text-align:center;margin-bottom:10px;box-sizing:border-box;}
+#labGateCodeBox button{width:100%;background:var(--navy);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit;}
+#labGateCodeBox button:hover{background:var(--navy-light);}
+.labGateBack{display:inline-block;margin-top:16px;color:var(--navy);font-weight:700;font-size:.82rem;text-decoration:none;}
+.labGateBack:hover{text-decoration:underline;}
+footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;line-height:1.8;}
+@media(max-width:680px){ .opts{grid-template-columns:1fr;} .exprDisplay{font-size:1.15rem;padding:18px 10px;} }
+</style>
+</head>
+<body>
+<a href="index.html" class="backHome" title="กลับหน้ารวมห้องทดลอง">← กลับหน้ารวม</a>
+<div id="labGate" class="labGate" style="display:none">
+  <div class="labGateBox">
+    <div class="labGateIcon" id="labGateIcon">🔒</div>
+    <h2 id="labGateTitle">ห้องนี้ปิดให้บริการชั่วคราว</h2>
+    <p id="labGateMsg">ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว</p>
+    <div id="labGateCodeBox" style="display:none">
+      <input type="text" id="labGateCodeInput" placeholder="กรอกรหัสเข้าใช้งาน" autocomplete="off">
+      <button id="labGateUnlockBtn">ปลดล็อก</button>
+      <p id="labGateCodeErr" style="display:none;color:#c0392b;font-size:.78rem;margin-top:8px;font-weight:700">รหัสไม่ถูกต้อง ลองใหม่อีกครั้ง</p>
+    </div>
+    <a href="index.html" class="labGateBack">← กลับหน้ารวมห้องทดลอง</a>
+  </div>
+</div>
+<script src="labs-config.js"></script>
+<script>
+(function(){
+  var FILE = 'sim_precedence.html';
+  function getCfg(){
+    try{ return (window.LAB_CONFIG && window.LAB_CONFIG.labs && window.LAB_CONFIG.labs[FILE]) || {open:true, locked:false}; }catch(e){ return {open:true, locked:false}; }
+  }
+  function getUnlocked(){ try{ return JSON.parse(localStorage.getItem('gnr1007_unlocked_v1')||'[]'); }catch(e){ return []; } }
+  function unlock(){ try{ var u=getUnlocked(); if(u.indexOf(FILE)===-1){ u.push(FILE); localStorage.setItem('gnr1007_unlocked_v1', JSON.stringify(u)); } }catch(e){} }
+  var cfg = getCfg();
+  var gate = document.getElementById('labGate');
+  if(!cfg.open){
+    gate.style.display='flex';
+    document.getElementById('labGateIcon').textContent='🚧';
+    document.getElementById('labGateTitle').textContent='ห้องนี้ปิดให้บริการชั่วคราว';
+    document.getElementById('labGateMsg').textContent='ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว กรุณาติดต่อผู้สอน หรือกลับไปเลือกห้องอื่น';
+  } else if(cfg.locked && getUnlocked().indexOf(FILE)===-1){
+    gate.style.display='flex';
+    document.getElementById('labGateIcon').textContent='🔒';
+    document.getElementById('labGateTitle').textContent='ห้องทดลองนี้ต้องใช้รหัสเข้าใช้งาน';
+    document.getElementById('labGateMsg').textContent = cfg.price ? ('ระดับการเข้าถึง: '+cfg.price+' — กรอกรหัสที่ได้รับจากผู้สอน') : 'กรอกรหัสที่ได้รับจากผู้สอนเพื่อเข้าใช้งาน';
+    document.getElementById('labGateCodeBox').style.display='block';
+    document.getElementById('labGateUnlockBtn').addEventListener('click', function(){
+      var v = document.getElementById('labGateCodeInput').value.trim();
+      if(v && cfg.code && v.toLowerCase() === String(cfg.code).toLowerCase()){
+        unlock();
+        gate.style.display='none';
+      } else {
+        document.getElementById('labGateCodeErr').style.display='block';
+      }
+    });
+    document.getElementById('labGateCodeInput').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('labGateUnlockBtn').click(); });
+  }
+})();
+</script>
+<header class="top">
+  <img src="eng_ru_logo.png" alt="โลโก้ วิศวกรรมศาสตร์ ม.รามคำแหง" onerror="this.style.display='none'">
+  <div class="ttl">
+    <h1>สื่อโต้ตอบ บทที่ 4 — ลำดับการคำนวณ (Operator Precedence)</h1>
+    <p>GNR 1007 เตรียมสอบ กว. Computer Programming | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <span class="badge">ทำไมบทนี้สำคัญ</span>
+    <div class="intro">
+      <p>ข้อสอบ กว. ชอบออกโจทย์ "คำนวณผลลัพธ์" ที่ต้องรู้ลำดับความสำคัญของเครื่องหมาย (Precedence) ให้แม่น มิฉะนั้นจะคำนวณผิดทั้งที่บวกลบคูณหารถูกทุกขั้นตอน พิมพ์นิพจน์ภาษา C ด้านล่างแล้วกด "คำนวณทีละขั้น" เพื่อดูว่าเครื่องคิดส่วนไหนก่อน-หลัง</p>
+      <div class="chip">น้ำหนักข้อสอบ<b>สูง</b></div>
+      <div class="chip">สอนช่วงที่<b>3</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ลำดับความสำคัญของเครื่องหมาย (สูง → ต่ำ)</h2>
+    <table class="spec">
+      <tr><th>ลำดับ</th><th>เครื่องหมาย</th><th>ทิศทางการคำนวณเมื่อลำดับเท่ากัน</th></tr>
+      <tr><td>1 (สูงสุด)</td><td class="name">( ) วงเล็บ</td><td>ในสุดก่อน</td></tr>
+      <tr><td>2</td><td class="name">+x, -x (unary บวก/ลบหน้าตัวเลข)</td><td>ขวาไปซ้าย</td></tr>
+      <tr><td>3</td><td class="name">* / % (คูณ หาร มอด)</td><td>ซ้ายไปขวา</td></tr>
+      <tr><td>4 (ต่ำสุด)</td><td class="name">+ - (บวก ลบ)</td><td>ซ้ายไปขวา</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>ลองคำนวณเอง</h2>
+    <div class="inputRow">
+      <input type="text" id="exprInput" value="3 + 4 * 2 - 6 / 2" spellcheck="false">
+      <button class="primary" id="btnCompute">▶ คำนวณทีละขั้น</button>
+    </div>
+    <div class="presets" id="presets"></div>
+    <div class="errbox" id="errbox"></div>
+
+    <div class="stage" id="stage">
+      <div class="exprDisplay" id="exprDisplay"></div>
+      <div class="stepInfo" id="stepInfo"></div>
+      <div class="navRow">
+        <button id="btnPrev">◀ ก่อนหน้า</button>
+        <div class="idx" id="idxLabel">0 / 0</div>
+        <button id="btnNext">ถัดไป ▶</button>
+        <button id="btnAuto">▶▶ เล่นอัตโนมัติ</button>
+      </div>
+      <div class="finalBox" id="finalBox"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="trap">
+      <b>จุดหลอก กว.:</b> เมื่อเครื่องหมายมีลำดับเท่ากัน (เช่น <code>* / %</code> ด้วยกัน หรือ <code>+ -</code> ด้วยกัน) ต้องคำนวณ <b>จากซ้ายไปขวา</b> เท่านั้น ตัวอย่างข้อสอบยอดฮิต: <code>20 / 4 * 2</code> หลายคนคิดว่า * ต้องทำก่อนได้ 20/(4*2)=2.5 ซึ่ง<b>ผิด</b> — คำตอบที่ถูกคือ (20/4)*2 = <b>10</b> เพราะหารมาก่อนตามลำดับซ้าย-ขวา และการหารจำนวนเต็ม (int/int) ใน C จะ<b>ตัดเศษทิ้ง</b>เสมอ (ไม่ปัดเศษ)
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ทดสอบความเข้าใจ</h2>
+    <div id="quiz"></div>
+  </div>
+
+</div>
+
+<footer>
+  พัฒนาโดย ผศ.ดร.กุลวลัญช์ วรุณสิน | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง<br>
+  ไฟล์นี้เปิดใช้งานได้แบบออฟไลน์ (หากไม่มีอินเทอร์เน็ต ฟอนต์จะสลับเป็นฟอนต์ไทยของระบบโดยอัตโนมัติ) | รองรับนิพจน์จำนวนเต็ม + - * / % และวงเล็บ (ตัดเศษแบบ C)
+</footer>
+
+<script>
+/* ---------- Expression engine ---------- */
+function tokenize(input){
+  const s = input.replace(/\s+/g,'');
+  if(!s) throw new Error('กรุณาพิมพ์นิพจน์ก่อนคำนวณ');
+  const tokens = [];
+  let i=0;
+  while(i<s.length){
+    const c = s[i];
+    if(/[0-9]/.test(c)){
+      let j=i;
+      while(j<s.length && /[0-9.]/.test(s[j])) j++;
+      const numStr = s.slice(i,j);
+      if((numStr.match(/\./g)||[]).length>1) throw new Error('ตัวเลขไม่ถูกต้อง: '+numStr);
+      tokens.push({type:'num', text:numStr, value:parseFloat(numStr)});
+      i=j;
+    } else if('+-*/%()'.includes(c)){
+      tokens.push({type:'op', text:c});
+      i++;
+    } else {
+      throw new Error('พบอักขระที่ไม่รองรับ: "'+c+'" (รองรับเฉพาะตัวเลข + - * / % และวงเล็บ)');
+    }
+  }
+  return tokens;
+}
+function parse(tokens){
+  let pos=0;
+  const peek = () => tokens[pos];
+  const nxt = () => tokens[pos++];
+  function parseExpr(){
+    let node = parseTerm();
+    while(peek() && peek().type==='op' && (peek().text==='+'||peek().text==='-')){
+      const op = nxt().text; const right = parseTerm();
+      node = {type:'bin', op, left:node, right, done:false};
+    }
+    return node;
+  }
+  function parseTerm(){
+    let node = parseUnary();
+    while(peek() && peek().type==='op' && (peek().text==='*'||peek().text==='/'||peek().text==='%')){
+      const op = nxt().text; const right = parseUnary();
+      node = {type:'bin', op, left:node, right, done:false};
+    }
+    return node;
+  }
+  function parseUnary(){
+    if(peek() && peek().type==='op' && (peek().text==='-'||peek().text==='+')){
+      const op = nxt().text; const operand = parseUnary();
+      return {type:'unary', op: op==='-'?'u-':'u+', operand, done:false};
+    }
+    return parsePrimary();
+  }
+  function parsePrimary(){
+    const t = peek();
+    if(!t) throw new Error('นิพจน์ไม่สมบูรณ์ (พิมพ์ไม่ครบ)');
+    if(t.type==='num'){ nxt(); return {type:'num', value:t.value, text:t.text, done:true}; }
+    if(t.type==='op' && t.text==='('){
+      nxt(); const node = parseExpr();
+      if(!peek() || peek().text!==')') throw new Error('วงเล็บไม่ครบ (ขาด ")" )');
+      nxt(); return node;
+    }
+    throw new Error('นิพจน์ไม่ถูกต้องใกล้ "'+t.text+'"');
+  }
+  const root = parseExpr();
+  if(pos !== tokens.length) throw new Error('มีอักขระเกินหลังนิพจน์ที่ถูกต้อง: "'+tokens[pos].text+'"');
+  return root;
+}
+function prec(op){ if(op==='u-'||op==='u+') return 4; if(op==='*'||op==='/'||op==='%') return 3; if(op==='+'||op==='-') return 2; return 0; }
+function needsParens(child, parentOp, isRight){
+  if(child.type==='num') return false;
+  if(child.done) return false;
+  const cp = prec(child.op), pp = prec(parentOp);
+  if(cp < pp) return true;
+  if(cp === pp && isRight && (parentOp==='-'||parentOp==='/'||parentOp==='%')) return true;
+  return false;
+}
+function formatNum(v){ return v<0 ? `(${v})` : `${v}`; }
+function render(node, currentNode){
+  if(node.type==='num') return node.done ? formatNum(node.value) : String(node.value);
+  if(node.type==='unary'){
+    if(node.done) return formatNum(node.value);
+    let inner = render(node.operand, currentNode);
+    if(needsParens(node.operand, node.op, false)) inner = '('+inner+')';
+    let s = (node.op==='u-'?'-':'+') + inner;
+    if(node===currentNode) s = `<span class="hl">${s}</span>`;
+    return s;
+  }
+  if(node.done) return formatNum(node.value);
+  let l = render(node.left, currentNode);
+  if(needsParens(node.left, node.op, false)) l = '('+l+')';
+  let r = render(node.right, currentNode);
+  if(needsParens(node.right, node.op, true)) r = '('+r+')';
+  let s = `${l} ${node.op} ${r}`;
+  if(node===currentNode) s = `<span class="hl">${s}</span>`;
+  return s;
+}
+function collectOps(node, list){
+  if(node.type==='num') return;
+  if(node.type==='unary'){ collectOps(node.operand,list); list.push(node); return; }
+  collectOps(node.left,list); collectOps(node.right,list); list.push(node);
+}
+function buildSteps(root){
+  const list = []; collectOps(root, list);
+  const frames = [{expr: render(root,null), info: 'นิพจน์เริ่มต้น — ยังไม่คำนวณ'}];
+  for(const node of list){
+    const before = render(root, node);
+    let val, a, b, opLabel;
+    if(node.type==='unary'){
+      a = node.operand.value;
+      val = node.op==='u-'? -a : a;
+      opLabel = node.op==='u-' ? `unary − : -(${a}) = ${val}` : `unary + : +(${a}) = ${val}`;
+    } else {
+      a = node.left.value; b = node.right.value;
+      switch(node.op){
+        case '+': val=a+b; break;
+        case '-': val=a-b; break;
+        case '*': val=a*b; break;
+        case '/':
+          if(b===0) throw new Error('หารด้วยศูนย์ไม่สามารถทำได้ (Division by zero) — แก้นิพจน์แล้วลองใหม่');
+          val = Math.trunc(a/b); break;
+        case '%':
+          if(b===0) throw new Error('หารด้วยศูนย์ไม่สามารถทำได้ (Division by zero) — แก้นิพจน์แล้วลองใหม่');
+          val = a % b; break;
+      }
+      opLabel = `${a} ${node.op} ${b} = ${val}`;
+    }
+    node.done = true; node.value = val;
+    frames.push({expr: before, info: opLabel, isBefore:true});
+    frames.push({expr: render(root,null), info: opLabel + '  →  แทนค่ากลับเข้านิพจน์', isBefore:false});
+  }
+  return {frames, final: root.value};
+}
+
+/* ---------- UI wiring ---------- */
+const PRESETS = ['3 + 4 * 2','20 / 4 * 2','10 % 3 + 1','-5 + 3 * (2 - 1)','7 % 2 * 3 - 1','2 + 3 * (4 - 1) % 5','10 - 2 - 3'];
+const presetsEl = document.getElementById('presets');
+PRESETS.forEach(p=>{
+  const b = document.createElement('button');
+  b.textContent = p;
+  b.addEventListener('click', ()=>{ document.getElementById('exprInput').value = p; compute(); });
+  presetsEl.appendChild(b);
+});
+
+let frames = [], idx = 0, autoTimer = null;
+const exprDisplay = document.getElementById('exprDisplay');
+const stepInfo = document.getElementById('stepInfo');
+const idxLabel = document.getElementById('idxLabel');
+const stage = document.getElementById('stage');
+const errbox = document.getElementById('errbox');
+const finalBox = document.getElementById('finalBox');
+const btnPrev = document.getElementById('btnPrev');
+const btnNext = document.getElementById('btnNext');
+const btnAuto = document.getElementById('btnAuto');
+
+function compute(){
+  stopAuto();
+  errbox.style.display = 'none';
+  finalBox.style.display = 'none';
+  const raw = document.getElementById('exprInput').value;
+  try{
+    const tokens = tokenize(raw);
+    const root = parse(tokens);
+    const built = buildSteps(root);
+    frames = built.frames;
+    idx = 0;
+    stage.style.display = 'block';
+    showFrame();
+    setTimeout(()=>{
+      finalBox.style.display = 'block';
+      finalBox.textContent = `ผลลัพธ์สุดท้าย: ${raw.trim()}  =  ${built.final}`;
+    }, 0);
+  }catch(err){
+    stage.style.display = 'none';
+    errbox.style.display = 'block';
+    errbox.textContent = '✘ ' + err.message;
+  }
+}
+function showFrame(){
+  const f = frames[idx];
+  exprDisplay.innerHTML = f.expr;
+  stepInfo.innerHTML = idx===0 ? f.info : `ขั้นตอนที่ ${Math.ceil(idx/2)}: <span class="eq">${f.info}</span>`;
+  idxLabel.textContent = `${idx+1} / ${frames.length}`;
+  btnPrev.disabled = idx===0;
+  btnNext.disabled = idx===frames.length-1;
+  finalBox.style.display = idx===frames.length-1 ? 'block' : 'none';
+}
+btnPrev.addEventListener('click', ()=>{ stopAuto(); if(idx>0){idx--; showFrame();} });
+btnNext.addEventListener('click', ()=>{ stopAuto(); if(idx<frames.length-1){idx++; showFrame();} });
+function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer=null; btnAuto.textContent='▶▶ เล่นอัตโนมัติ'; } }
+btnAuto.addEventListener('click', ()=>{
+  if(autoTimer){ stopAuto(); return; }
+  btnAuto.textContent = '⏸ หยุดชั่วคราว';
+  autoTimer = setInterval(()=>{
+    if(idx>=frames.length-1){ stopAuto(); return; }
+    idx++; showFrame();
+  }, 1300);
+});
+document.getElementById('btnCompute').addEventListener('click', compute);
+document.getElementById('exprInput').addEventListener('keydown', e=>{ if(e.key==='Enter') compute(); });
+
+compute(); // initial demo
+
+/* ---------- Quiz ---------- */
+const QUESTIONS = [
+  {
+    q: '1) 20 / 4 * 2 มีค่าเท่าใด?',
+    opts: ['2.5','10','2','40'],
+    ans: 1,
+    exp: 'ถูกต้อง — * และ / ลำดับเท่ากัน คิดจากซ้ายไปขวา: (20/4)=5 แล้ว 5*2=10 (ไม่ใช่ 4*2 ก่อน)'
+  },
+  {
+    q: '2) 7 + 3 * 2 มีค่าเท่าใด?',
+    opts: ['20','13','16','10'],
+    ans: 1,
+    exp: 'ถูกต้อง — * ทำก่อน + เสมอ: 3*2=6 แล้ว 7+6=13'
+  },
+  {
+    q: '3) 10 % 3 มีค่าเท่าใด (int)?',
+    opts: ['3.33','1','3','0'],
+    ans: 1,
+    exp: 'ถูกต้อง — % คือเศษจากการหาร: 10 หาร 3 ได้ 3 เศษ 1 ดังนั้น 10 % 3 = 1'
+  },
+  {
+    q: '4) -5 + 3 * (2 - 1) มีค่าเท่าใด?',
+    opts: ['-2','2','-15','15'],
+    ans: 0,
+    exp: 'ถูกต้อง — วงเล็บก่อน: (2-1)=1, คูณ: 3*1=3, unary ลบ: -5, สุดท้าย -5+3=-2'
+  }
+];
+const quizEl = document.getElementById('quiz');
+QUESTIONS.forEach((item)=>{
+  const box = document.createElement('div');
+  box.className = 'quiz-item';
+  box.innerHTML = `<p class="q">${item.q}</p><div class="opts"></div><div class="fb"></div>`;
+  const optsEl = box.querySelector('.opts');
+  item.opts.forEach((opt, oi)=>{
+    const b = document.createElement('button');
+    b.textContent = opt;
+    b.addEventListener('click', ()=>{
+      const fb = box.querySelector('.fb');
+      const allBtns = optsEl.querySelectorAll('button');
+      allBtns.forEach(bb=>bb.disabled=true);
+      if(oi === item.ans){
+        b.classList.add('correct');
+        fb.style.color = 'var(--success)';
+        fb.textContent = '✔ ถูกต้อง! ' + item.exp;
+      }else{
+        b.classList.add('wrong');
+        allBtns[item.ans].classList.add('correct');
+        fb.style.color = 'var(--danger)';
+        fb.textContent = '✘ ยังไม่ถูก — ' + item.exp;
+      }
+      fb.style.display='block';
+    });
+    optsEl.appendChild(b);
+  });
+  quizEl.appendChild(box);
+});
+</script>
+</body>
+</html>

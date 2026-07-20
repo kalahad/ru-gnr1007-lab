@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 5: ตารางทดค่า Code Tracing | GNR 1007</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#16306C; --navy-dark:#0d1f4d; --navy-light:#24408a;
+  --gold:#C9A227; --gold-light:#e8cf6f;
+  --bg:#eef1f8; --card:#ffffff;
+  --danger:#c0392b; --danger-bg:#fdeaea;
+  --success:#1e8449; --success-bg:#eafaf1;
+  --text:#1c2333; --muted:#657085; --radius:16px;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Noto Sans Thai','Sarabun',sans-serif;background:linear-gradient(180deg,#eef1f8,#f8f9fd 400px);color:var(--text);}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 60px;}
+header.top{background:linear-gradient(120deg,var(--navy-dark),var(--navy));color:#fff;padding:22px 20px;display:flex;align-items:center;gap:18px;box-shadow:0 4px 18px rgba(22,48,108,.25);}
+header.top img{height:56px;width:auto;border-radius:8px;background:#fff;padding:4px;}
+header.top .ttl{flex:1;}
+header.top h1{margin:0;font-size:1.35rem;font-weight:800;}
+header.top p{margin:4px 0 0;font-size:.85rem;opacity:.85;font-weight:500;}
+.badge{display:inline-block;background:var(--gold);color:var(--navy-dark);font-weight:700;font-size:.75rem;padding:3px 12px;border-radius:20px;margin-bottom:6px;}
+.card{background:var(--card);border-radius:var(--radius);padding:22px 24px;margin-top:22px;box-shadow:0 2px 14px rgba(22,48,108,.08);border:1px solid #e4e8f3;}
+.card h2{margin:0 0 10px;color:var(--navy);font-size:1.15rem;border-left:6px solid var(--gold);padding-left:12px;}
+.intro{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;}
+.intro p{flex:1;min-width:260px;line-height:1.85;margin:0;}
+.chip{background:#eef1f8;border-radius:10px;padding:10px 14px;font-size:.85rem;color:var(--navy-dark);font-weight:600;min-width:150px;text-align:center;}
+.chip b{display:block;font-size:1.05rem;color:var(--navy);}
+
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.presets button{background:#f5f7fc;border:1.5px solid #dfe4f0;border-radius:20px;padding:7px 14px;font-family:inherit;font-size:.82rem;font-weight:700;color:var(--navy-dark);cursor:pointer;}
+.presets button:hover{background:#e6eaf6;}
+textarea#codeInput{width:100%;min-height:170px;font-family:'Courier New',monospace;font-size:.95rem;padding:14px 16px;border-radius:10px;border:2px solid #d7deee;color:var(--navy-dark);resize:vertical;line-height:1.5;}
+textarea#codeInput:focus{outline:none;border-color:var(--navy);}
+.runRow{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center;}
+button.primary{background:var(--navy);color:#fff;border:none;padding:12px 26px;border-radius:10px;font-family:inherit;font-weight:700;font-size:.95rem;cursor:pointer;box-shadow:0 3px 10px rgba(22,48,108,.3);}
+button.primary:hover{background:var(--navy-light);}
+.errbox{background:var(--danger-bg);border:1.5px solid #f0b7b0;color:var(--danger);border-radius:10px;padding:12px 16px;margin-top:14px;font-weight:700;display:none;white-space:pre-wrap;}
+
+.stage{display:none;}
+.panels{display:grid;grid-template-columns:1.1fr 1.3fr .9fr;gap:16px;margin-top:18px;}
+.panel{border-radius:12px;overflow:hidden;border:1px solid #e4e8f3;display:flex;flex-direction:column;min-height:260px;}
+.panel h3{margin:0;background:var(--navy);color:#fff;font-size:.82rem;font-weight:700;padding:9px 14px;}
+.codePane{background:#0d1f4d;color:#dbe3f5;font-family:'Courier New',monospace;font-size:.85rem;overflow:auto;flex:1;padding:6px 0;}
+.codePane .ln{display:flex;padding:2px 12px;white-space:pre;}
+.codePane .ln .num{width:28px;flex-shrink:0;color:#5b6d9c;text-align:right;margin-right:12px;user-select:none;}
+.codePane .ln.active{background:var(--gold);color:var(--navy-dark);font-weight:700;border-radius:4px;}
+.codePane .ln.active .num{color:var(--navy-dark);}
+
+.tracePane{overflow:auto;flex:1;background:#fbfcfe;}
+table.trace{border-collapse:collapse;width:100%;font-size:.8rem;font-family:'Courier New',monospace;}
+table.trace th,table.trace td{border:1px solid #e4e8f3;padding:6px 10px;text-align:center;white-space:nowrap;}
+table.trace th{background:#eef1f8;color:var(--navy-dark);position:sticky;top:0;}
+table.trace td.step-no{background:#f5f7fc;font-weight:700;color:var(--muted);}
+table.trace tr.current td{background:var(--success-bg);}
+table.trace td.changed{color:var(--danger);font-weight:800;}
+
+.outPane{background:#0d1f4d;color:#9be89b;font-family:'Courier New',monospace;font-size:.82rem;padding:12px;overflow:auto;flex:1;white-space:pre-wrap;}
+
+.stepInfo{margin-top:14px;background:#f0f3fb;border-radius:10px;padding:12px 16px;font-weight:700;color:var(--navy-dark);font-size:.92rem;min-height:24px;}
+.navRow{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap;}
+.navRow button{background:#fff;border:2px solid var(--navy);color:var(--navy);font-weight:800;padding:9px 20px;border-radius:10px;cursor:pointer;font-family:inherit;}
+.navRow button:hover:not(:disabled){background:var(--navy);color:#fff;}
+.navRow button:disabled{opacity:.35;cursor:not-allowed;}
+.navRow .idx{font-weight:800;color:var(--navy-dark);min-width:100px;text-align:center;}
+
+.trap{background:var(--danger-bg);border:1.5px solid #f0b7b0;border-left:6px solid var(--danger);border-radius:12px;padding:14px 18px;margin-top:16px;}
+.trap b{color:var(--danger);}
+.note{background:#f0f3fb;border-radius:10px;padding:12px 16px;margin-top:12px;font-size:.85rem;color:var(--navy-dark);}
+
+.quiz-item{border:1px solid #e4e8f3;border-radius:12px;padding:14px 16px;margin-bottom:14px;}
+.quiz-item p.q{font-weight:700;margin:0 0 10px;color:var(--navy-dark);}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.opts button{text-align:left;background:#f7f8fc;border:1.5px solid #dfe4f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:.87rem;cursor:pointer;color:var(--text);}
+.opts button:hover{border-color:var(--navy-light);}
+.opts button.correct{background:var(--success-bg);border-color:var(--success);color:var(--success);font-weight:700;}
+.opts button.wrong{background:var(--danger-bg);border-color:var(--danger);color:var(--danger);font-weight:700;}
+.fb{margin-top:8px;font-size:.85rem;font-weight:600;display:none;}
+
+.backHome{position:fixed;top:16px;right:16px;z-index:998;background:rgba(10,26,64,.9);color:#fff;text-decoration:none;font-weight:700;font-size:.8rem;padding:9px 18px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px);transition:.2s;}
+.backHome:hover{background:var(--gold);color:var(--navy-dark);}
+.labGate{position:fixed;inset:0;background:linear-gradient(135deg,rgba(10,26,64,.97),rgba(22,48,108,.97));z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+.labGateBox{background:#fff;border-radius:20px;padding:34px 30px;max-width:380px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.4);}
+.labGateIcon{font-size:3rem;margin-bottom:10px;}
+.labGateBox h2{color:var(--navy-dark);font-size:1.15rem;margin:0 0 10px;}
+.labGateBox p{color:var(--muted);font-size:.88rem;line-height:1.7;margin:0 0 16px;}
+#labGateCodeBox input{width:100%;padding:10px 14px;border-radius:10px;border:2px solid #d7deee;font-family:'Courier New',monospace;font-size:.95rem;text-align:center;margin-bottom:10px;box-sizing:border-box;}
+#labGateCodeBox button{width:100%;background:var(--navy);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit;}
+#labGateCodeBox button:hover{background:var(--navy-light);}
+.labGateBack{display:inline-block;margin-top:16px;color:var(--navy);font-weight:700;font-size:.82rem;text-decoration:none;}
+.labGateBack:hover{text-decoration:underline;}
+footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;line-height:1.8;}
+@media(max-width:900px){ .panels{grid-template-columns:1fr;} .opts{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<a href="index.html" class="backHome" title="กลับหน้ารวมห้องทดลอง">← กลับหน้ารวม</a>
+<div id="labGate" class="labGate" style="display:none">
+  <div class="labGateBox">
+    <div class="labGateIcon" id="labGateIcon">🔒</div>
+    <h2 id="labGateTitle">ห้องนี้ปิดให้บริการชั่วคราว</h2>
+    <p id="labGateMsg">ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว</p>
+    <div id="labGateCodeBox" style="display:none">
+      <input type="text" id="labGateCodeInput" placeholder="กรอกรหัสเข้าใช้งาน" autocomplete="off">
+      <button id="labGateUnlockBtn">ปลดล็อก</button>
+      <p id="labGateCodeErr" style="display:none;color:#c0392b;font-size:.78rem;margin-top:8px;font-weight:700">รหัสไม่ถูกต้อง ลองใหม่อีกครั้ง</p>
+    </div>
+    <a href="index.html" class="labGateBack">← กลับหน้ารวมห้องทดลอง</a>
+  </div>
+</div>
+<script src="labs-config.js"></script>
+<script>
+(function(){
+  var FILE = 'sim_trace.html';
+  function getCfg(){
+    try{ return (window.LAB_CONFIG && window.LAB_CONFIG.labs && window.LAB_CONFIG.labs[FILE]) || {open:true, locked:false}; }catch(e){ return {open:true, locked:false}; }
+  }
+  function getUnlocked(){ try{ return JSON.parse(localStorage.getItem('gnr1007_unlocked_v1')||'[]'); }catch(e){ return []; } }
+  function unlock(){ try{ var u=getUnlocked(); if(u.indexOf(FILE)===-1){ u.push(FILE); localStorage.setItem('gnr1007_unlocked_v1', JSON.stringify(u)); } }catch(e){} }
+  var cfg = getCfg();
+  var gate = document.getElementById('labGate');
+  if(!cfg.open){
+    gate.style.display='flex';
+    document.getElementById('labGateIcon').textContent='🚧';
+    document.getElementById('labGateTitle').textContent='ห้องนี้ปิดให้บริการชั่วคราว';
+    document.getElementById('labGateMsg').textContent='ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว กรุณาติดต่อผู้สอน หรือกลับไปเลือกห้องอื่น';
+  } else if(cfg.locked && getUnlocked().indexOf(FILE)===-1){
+    gate.style.display='flex';
+    document.getElementById('labGateIcon').textContent='🔒';
+    document.getElementById('labGateTitle').textContent='ห้องทดลองนี้ต้องใช้รหัสเข้าใช้งาน';
+    document.getElementById('labGateMsg').textContent = cfg.price ? ('ระดับการเข้าถึง: '+cfg.price+' — กรอกรหัสที่ได้รับจากผู้สอน') : 'กรอกรหัสที่ได้รับจากผู้สอนเพื่อเข้าใช้งาน';
+    document.getElementById('labGateCodeBox').style.display='block';
+    document.getElementById('labGateUnlockBtn').addEventListener('click', function(){
+      var v = document.getElementById('labGateCodeInput').value.trim();
+      if(v && cfg.code && v.toLowerCase() === String(cfg.code).toLowerCase()){
+        unlock();
+        gate.style.display='none';
+      } else {
+        document.getElementById('labGateCodeErr').style.display='block';
+      }
+    });
+    document.getElementById('labGateCodeInput').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('labGateUnlockBtn').click(); });
+  }
+})();
+</script>
+<header class="top">
+  <img src="eng_ru_logo.png" alt="โลโก้ วิศวกรรมศาสตร์ ม.รามคำแหง" onerror="this.style.display='none'">
+  <div class="ttl">
+    <h1>สื่อโต้ตอบ บทที่ 5 — ตารางทดค่า (Code Tracing)</h1>
+    <p>GNR 1007 เตรียมสอบ กว. Computer Programming | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <span class="badge">ทำไมบทนี้สำคัญ</span>
+    <div class="intro">
+      <p>โจทย์ "จงหาผลลัพธ์การทำงานของโค้ด" คือรูปแบบข้อสอบที่พบ<b>มากที่สุด</b>ในหมวด Computer Programming เทคนิคที่ใช้ทำคะแนนคือ <b>"ตีตารางทดค่า"</b> — จดค่าตัวแปรทุกครั้งที่เปลี่ยน ทีละบรรทัด วางโค้ด C ด้านล่างแล้วกด "แปลงเป็นขั้นตอน" เพื่อดูตารางทดค่าอัตโนมัติ พร้อมไฮไลต์บรรทัดที่กำลังทำงาน</p>
+      <div class="chip">น้ำหนักข้อสอบ<b>สูงมาก</b></div>
+      <div class="chip">สอนช่วงที่<b>4-6</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>วางโค้ด C ของคุณ</h2>
+    <div class="presets" id="presets"></div>
+    <textarea id="codeInput" spellcheck="false"></textarea>
+    <div class="runRow">
+      <button class="primary" id="btnRun">▶ แปลงเป็นขั้นตอน (Trace)</button>
+    </div>
+    <div class="errbox" id="errbox"></div>
+  </div>
+
+  <div class="card stage" id="stage">
+    <h2>ผลการทำงานทีละขั้น</h2>
+    <div class="panels">
+      <div class="panel">
+        <h3>โค้ด (บรรทัดที่กำลังทำงาน)</h3>
+        <div class="codePane" id="codePane"></div>
+      </div>
+      <div class="panel">
+        <h3>ตารางทดค่า (Trace Table)</h3>
+        <div class="tracePane"><table class="trace" id="traceTable"></table></div>
+      </div>
+      <div class="panel">
+        <h3>หน้าจอ Output (printf)</h3>
+        <div class="outPane" id="outPane">(ยังไม่มี output)</div>
+      </div>
+    </div>
+    <div class="stepInfo" id="stepInfo"></div>
+    <div class="navRow">
+      <button id="btnPrev">◀ ก่อนหน้า</button>
+      <div class="idx" id="idxLabel">0 / 0</div>
+      <button id="btnNext">ถัดไป ▶</button>
+      <button id="btnAuto">▶▶ เล่นอัตโนมัติ</button>
+      <button id="btnEnd">ไปขั้นตอนสุดท้าย ⏭</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="trap">
+      <b>จุดหลอก กว.: Prefix (++x) กับ Postfix (x++)</b><br>
+      <code>y = x++;</code> → นำค่า <b>เดิม</b>ของ x ไปใช้ก่อน แล้วค่อยเพิ่ม x ทีหลัง (y ได้ค่าเก่า)<br>
+      <code>y = ++x;</code> → เพิ่มค่า x ก่อน แล้วนำค่า<b>ใหม่</b>ไปใช้ (y ได้ค่าใหม่)<br>
+      ลองพิมพ์โค้ดตัวอย่าง "Prefix vs Postfix" ด้านบนแล้วดูตารางทดค่าเปรียบเทียบ
+    </div>
+    <div class="note">
+      <b>ข้อจำกัดของเครื่องมือนี้ (เพื่อความชัดเจนในการสอน):</b> รองรับตัวแปรชนิด int/float/char ในขอบเขตเดียว (ไม่มี scope ซ้อนแยกชื่อซ้ำ), เงื่อนไข if/else, ลูป for/while/do-while, printf อย่างง่าย (%d %f %c) — ยังไม่รองรับอาร์เรย์ ฟังก์ชัน หรือ struct (มีสื่อแยกต่างหากสำหรับอาร์เรย์ในบทที่ 7)
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ทดสอบความเข้าใจ</h2>
+    <div id="quiz"></div>
+  </div>
+
+</div>
+
+<footer>
+  พัฒนาโดย ผศ.ดร.กุลวลัญช์ วรุณสิน | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง<br>
+  ไฟล์นี้เปิดใช้งานได้แบบออฟไลน์ (หากไม่มีอินเทอร์เน็ต ฟอนต์จะสลับเป็นฟอนต์ไทยของระบบโดยอัตโนมัติ)
+</footer>
+
+<script>
+/* ================= Mini-C interpreter engine ================= */
+function tokenize(src){
+  const tokens = [];
+  let i=0, line=1;
+  const n = src.length;
+  const isDigit = c => /[0-9]/.test(c);
+  const isAlpha = c => /[A-Za-z_]/.test(c);
+  const isAlnum = c => /[A-Za-z0-9_]/.test(c);
+  while(i<n){
+    let c = src[i];
+    if(c==='\n'){ line++; i++; continue; }
+    if(/\s/.test(c)){ i++; continue; }
+    if(c==='/' && src[i+1]==='/'){ while(i<n && src[i]!=='\n') i++; continue; }
+    if(c==='/' && src[i+1]==='*'){ i+=2; while(i<n && !(src[i]==='*'&&src[i+1]==='/')){ if(src[i]==='\n')line++; i++;} i+=2; continue; }
+    if(isDigit(c) || (c==='.' && isDigit(src[i+1]))){
+      let j=i; let isFloat=false;
+      while(j<n && (isDigit(src[j]) || src[j]==='.')){ if(src[j]==='.') isFloat=true; j++; }
+      tokens.push({type:'num', text:src.slice(i,j), value:parseFloat(src.slice(i,j)), isFloat, line});
+      i=j; continue;
+    }
+    if(isAlpha(c)){
+      let j=i; while(j<n && isAlnum(src[j])) j++;
+      const word = src.slice(i,j);
+      tokens.push({type:'ident', text:word, line});
+      i=j; continue;
+    }
+    if(c === '"'){
+      let j=i+1; let buf='';
+      while(j<n && src[j]!=='"'){
+        if(src[j]==='\\'){
+          const nc = src[j+1];
+          if(nc==='n') buf+='\n'; else if(nc==='t') buf+='\t'; else if(nc==='"') buf+='"'; else if(nc==='\\') buf+='\\'; else buf+=nc;
+          j+=2;
+        } else { buf+=src[j]; j++; }
+      }
+      tokens.push({type:'string', value:buf, line});
+      i=j+1; continue;
+    }
+    if(c === "'"){
+      let j=i+1; let ch;
+      if(src[j]==='\\'){ const nc=src[j+1]; ch = nc==='n'?'\n':nc==='t'?'\t':nc==="'"?"'":nc; j+=2; }
+      else { ch = src[j]; j+=1; }
+      if(src[j] !== "'") throw new Error('char literal ไม่ถูกต้อง ที่บรรทัด '+line);
+      j+=1;
+      tokens.push({type:'num', text:"'"+ch+"'", value: ch.charCodeAt(0), isFloat:false, isChar:true, line});
+      i=j; continue;
+    }
+    const two = src.slice(i,i+2);
+    const OPS2 = ['==','!=','<=','>=','&&','||','++','--','+=','-=','*=','/=','%='];
+    if(OPS2.includes(two)){ tokens.push({type:'op', text:two, line}); i+=2; continue; }
+    if('+-*/%=<>!(){};,'.includes(c)){ tokens.push({type:'op', text:c, line}); i+=1; continue; }
+    throw new Error(`พบอักขระที่ไม่รองรับ "${c}" ที่บรรทัด ${line}`);
+  }
+  tokens.push({type:'eof', text:'', line});
+  return tokens;
+}
+const TYPE_KEYWORDS = new Set(['int','float','double','char']);
+function parseProgram(tokens){
+  let pos=0;
+  const peek=(o=0)=>tokens[pos+o];
+  const at=(txt)=>(peek().type==='op'&&peek().text===txt) || (peek().type==='ident'&&peek().text===txt);
+  const eat=(txt)=>{ if(!at(txt)) throw new Error(`ต้องการ "${txt}" แต่พบ "${peek().text}" ที่บรรทัด ${peek().line}`); return tokens[pos++]; };
+  const next=()=>tokens[pos++];
+  function parseStatementList(endTokenTxt){
+    const list=[];
+    while(!(peek().type==='eof') && !(endTokenTxt && at(endTokenTxt))) list.push(parseStatement());
+    return list;
+  }
+  function parseBlockOrStmt(){
+    if(at('{')){ const line = peek().line; eat('{'); const body = parseStatementList('}'); eat('}'); return {type:'Block', body, line}; }
+    return parseStatement();
+  }
+  function parseStatement(){
+    const t = peek();
+    if(t.type==='ident' && TYPE_KEYWORDS.has(t.text)) return parseVarDecl();
+    if(t.type==='ident' && t.text==='if') return parseIf();
+    if(t.type==='ident' && t.text==='for') return parseFor();
+    if(t.type==='ident' && t.text==='while') return parseWhile();
+    if(t.type==='ident' && t.text==='do') return parseDoWhile();
+    if(t.type==='ident' && t.text==='printf') return parsePrintf();
+    if(at('{')) return parseBlockOrStmt();
+    return parseExprStmt();
+  }
+  function parseVarDecl(){
+    const line = peek().line; const varType = next().text; const decls=[];
+    do{
+      const nameTok = next();
+      if(nameTok.type!=='ident') throw new Error('ต้องการชื่อตัวแปร ที่บรรทัด '+nameTok.line);
+      let init=null;
+      if(at('=')){ eat('='); init = parseExpr(); }
+      decls.push({name:nameTok.text, init});
+    } while(at(',') && (eat(','), true));
+    eat(';');
+    return {type:'VarDecl', varType, decls, line};
+  }
+  function parseVarDeclNoSemi(){
+    const line = peek().line; const varType = next().text; const decls=[];
+    do{
+      const nameTok = next(); let init=null;
+      if(at('=')){ eat('='); init = parseExpr(); }
+      decls.push({name:nameTok.text, init});
+    } while(at(',') && (eat(','), true));
+    return {type:'VarDecl', varType, decls, line};
+  }
+  function parseExprStmt(){
+    const line = peek().line; const expr = parseAssignExpr(); eat(';');
+    return {type:'ExprStmt', expr, line};
+  }
+  function parseAssignExpr(){
+    if(peek().type==='ident' && !TYPE_KEYWORDS.has(peek().text) && peek(1) && peek(1).type==='op' && ['=','+=','-=','*=','/=','%='].includes(peek(1).text)){
+      const nameTok = next(); const opTok = next(); const rhs = parseExpr();
+      return {type:'Assign', name:nameTok.text, op:opTok.text, value:rhs, line:nameTok.line};
+    }
+    return parseExpr();
+  }
+  function parseIf(){
+    const line = peek().line; eat('if'); eat('(');
+    const cond = parseExpr(); eat(')');
+    const thenS = parseBlockOrStmt();
+    let elseS=null;
+    if(at('else')){ eat('else'); elseS = parseBlockOrStmt(); }
+    return {type:'If', cond, then:thenS, else:elseS, line};
+  }
+  function parseFor(){
+    const line = peek().line; eat('for'); eat('(');
+    let init=null;
+    if(!at(';')){
+      if(peek().type==='ident' && TYPE_KEYWORDS.has(peek().text)) init = parseVarDeclNoSemi();
+      else { const e = parseAssignExpr(); init = {type:'ExprStmt', expr:e, line:peek().line}; }
+    }
+    eat(';');
+    let cond=null; if(!at(';')) cond = parseExpr(); eat(';');
+    let update=null; if(!at(')')){ const e = parseAssignExpr(); update = {type:'ExprStmt', expr:e, line:peek().line}; } eat(')');
+    const body = parseBlockOrStmt();
+    return {type:'For', init, cond, update, body, line};
+  }
+  function parseWhile(){
+    const line = peek().line; eat('while'); eat('(');
+    const cond = parseExpr(); eat(')');
+    const body = parseBlockOrStmt();
+    return {type:'While', cond, body, line};
+  }
+  function parseDoWhile(){
+    const line = peek().line; eat('do');
+    const body = parseBlockOrStmt();
+    eat('while'); eat('('); const cond = parseExpr(); eat(')'); eat(';');
+    return {type:'DoWhile', cond, body, line};
+  }
+  function parsePrintf(){
+    const line = peek().line; eat('printf'); eat('(');
+    const fmtTok = next();
+    if(fmtTok.type!=='string') throw new Error('printf ต้องขึ้นต้นด้วยข้อความในเครื่องหมายคำพูด ที่บรรทัด '+line);
+    const args=[];
+    while(at(',')){ eat(','); args.push(parseExpr()); }
+    eat(')'); eat(';');
+    return {type:'Printf', format:fmtTok.value, args, line};
+  }
+  function parseExpr(){ return parseLogicalOr(); }
+  function parseLogicalOr(){ let node = parseLogicalAnd(); while(at('||')){ eat('||'); const r = parseLogicalAnd(); node={type:'bin',op:'||',left:node,right:r}; } return node; }
+  function parseLogicalAnd(){ let node = parseEquality(); while(at('&&')){ eat('&&'); const r = parseEquality(); node={type:'bin',op:'&&',left:node,right:r}; } return node; }
+  function parseEquality(){ let node = parseRelational(); while(at('==')||at('!=')){ const op=next().text; const r=parseRelational(); node={type:'bin',op,left:node,right:r}; } return node; }
+  function parseRelational(){ let node = parseAdditive(); while(at('<')||at('>')||at('<=')||at('>=')){ const op=next().text; const r=parseAdditive(); node={type:'bin',op,left:node,right:r}; } return node; }
+  function parseAdditive(){ let node = parseMultiplicative(); while(at('+')||at('-')){ const op=next().text; const r=parseMultiplicative(); node={type:'bin',op,left:node,right:r}; } return node; }
+  function parseMultiplicative(){ let node = parseUnary(); while(at('*')||at('/')||at('%')){ const op=next().text; const r=parseUnary(); node={type:'bin',op,left:node,right:r}; } return node; }
+  function parseUnary(){
+    if(at('!')||at('-')||at('+')){ const op=next().text; const operand=parseUnary(); return {type:'unary',op,operand}; }
+    if(at('++')||at('--')){ const op=next().text; const operand=parseUnary(); return {type:'preincr',op,operand}; }
+    return parsePostfix();
+  }
+  function parsePostfix(){ let node = parsePrimary(); while(at('++')||at('--')){ const op=next().text; node = {type:'postincr', op, operand:node}; } return node; }
+  function parsePrimary(){
+    const t = peek();
+    if(t.type==='num'){ next(); return {type:'num', value:t.value, isFloat:!!t.isFloat, isChar:!!t.isChar}; }
+    if(t.type==='ident'){ next(); return {type:'ident', name:t.text}; }
+    if(at('(')){ eat('('); const e=parseExpr(); eat(')'); return e; }
+    throw new Error(`นิพจน์ไม่ถูกต้องใกล้ "${t.text}" ที่บรรทัด ${t.line}`);
+  }
+  const program = parseStatementList(null);
+  return program;
+}
+function castValue(type, v){ if(type==='float' || type==='double') return v; return Math.trunc(v); }
+function evalExpr(node, env){
+  switch(node.type){
+    case 'num': return {v: node.value, f: node.isFloat};
+    case 'ident': { const vr = env.vars[node.name]; if(!vr) throw new Error(`ตัวแปร "${node.name}" ยังไม่ถูกประกาศ`); return {v: vr.value, f: vr.type==='float'||vr.type==='double'}; }
+    case 'unary': {
+      const a = evalExpr(node.operand, env);
+      if(node.op==='-') return {v:-a.v, f:a.f};
+      if(node.op==='+') return a;
+      if(node.op==='!') return {v: a.v===0?1:0, f:false};
+      break;
+    }
+    case 'preincr': {
+      if(node.operand.type!=='ident') throw new Error('++/-- ใช้ได้กับตัวแปรเท่านั้น');
+      const vr = env.vars[node.operand.name]; if(!vr) throw new Error(`ตัวแปร "${node.operand.name}" ยังไม่ถูกประกาศ`);
+      const delta = node.op==='++'?1:-1;
+      vr.value = castValue(vr.type, vr.value+delta);
+      return {v: vr.value, f: vr.type==='float'};
+    }
+    case 'postincr': {
+      if(node.operand.type!=='ident') throw new Error('++/-- ใช้ได้กับตัวแปรเท่านั้น');
+      const vr = env.vars[node.operand.name]; if(!vr) throw new Error(`ตัวแปร "${node.operand.name}" ยังไม่ถูกประกาศ`);
+      const old = vr.value; const delta = node.op==='++'?1:-1;
+      vr.value = castValue(vr.type, vr.value+delta);
+      return {v: old, f: vr.type==='float'};
+    }
+    case 'bin': {
+      if(node.op==='&&'){ const a=evalExpr(node.left,env); if(a.v===0) return {v:0,f:false}; const b=evalExpr(node.right,env); return {v: b.v!==0?1:0, f:false}; }
+      if(node.op==='||'){ const a=evalExpr(node.left,env); if(a.v!==0) return {v:1,f:false}; const b=evalExpr(node.right,env); return {v: b.v!==0?1:0, f:false}; }
+      const a = evalExpr(node.left, env), b = evalExpr(node.right, env);
+      switch(node.op){
+        case '+': return {v:a.v+b.v, f:a.f||b.f};
+        case '-': return {v:a.v-b.v, f:a.f||b.f};
+        case '*': return {v:a.v*b.v, f:a.f||b.f};
+        case '/': if(b.v===0) throw new Error('หารด้วยศูนย์ (Division by zero)'); return (a.f||b.f) ? {v:a.v/b.v, f:true} : {v:Math.trunc(a.v/b.v), f:false};
+        case '%': if(b.v===0) throw new Error('หารด้วยศูนย์ (Division by zero)'); return {v: a.v % b.v, f:a.f||b.f};
+        case '<': return {v:a.v<b.v?1:0, f:false};
+        case '>': return {v:a.v>b.v?1:0, f:false};
+        case '<=': return {v:a.v<=b.v?1:0, f:false};
+        case '>=': return {v:a.v>=b.v?1:0, f:false};
+        case '==': return {v:a.v===b.v?1:0, f:false};
+        case '!=': return {v:a.v!==b.v?1:0, f:false};
+      }
+    }
+  }
+  throw new Error('นิพจน์ไม่รองรับ: '+node.type);
+}
+function doAssign(name, op, rhsNode, env){
+  const vr = env.vars[name]; if(!vr) throw new Error(`ตัวแปร "${name}" ยังไม่ถูกประกาศ`);
+  const rhs = evalExpr(rhsNode, env); let newVal;
+  switch(op){
+    case '=': newVal = rhs.v; break;
+    case '+=': newVal = vr.value + rhs.v; break;
+    case '-=': newVal = vr.value - rhs.v; break;
+    case '*=': newVal = vr.value * rhs.v; break;
+    case '/=': if(rhs.v===0) throw new Error('หารด้วยศูนย์ (Division by zero)'); newVal = (vr.type==='float'||rhs.f) ? vr.value/rhs.v : Math.trunc(vr.value/rhs.v); break;
+    case '%=': if(rhs.v===0) throw new Error('หารด้วยศูนย์ (Division by zero)'); newVal = vr.value % rhs.v; break;
+  }
+  vr.value = castValue(vr.type, newVal);
+  return vr.value;
+}
+function exprToStr(node){
+  if(!node) return '';
+  switch(node.type){
+    case 'num': return node.isChar ? `'${String.fromCharCode(node.value)}'` : String(node.value);
+    case 'ident': return node.name;
+    case 'unary': return node.op + exprToStr(node.operand);
+    case 'preincr': return node.op + exprToStr(node.operand);
+    case 'postincr': return exprToStr(node.operand) + node.op;
+    case 'bin': return `${exprToStr(node.left)} ${node.op} ${exprToStr(node.right)}`;
+  }
+  return '?';
+}
+function formatPrintf(fmt, argNodes, env){
+  let argIdx = 0; let result = '';
+  for(let i=0;i<fmt.length;i++){
+    if(fmt[i]==='%' && i+1<fmt.length){
+      const spec = fmt[i+1];
+      if(spec==='d'||spec==='i'){ const a=evalExpr(argNodes[argIdx++],env); result+= Math.trunc(a.v); i++; continue; }
+      if(spec==='f'){ const a=evalExpr(argNodes[argIdx++],env); result+= a.v.toFixed(2); i++; continue; }
+      if(spec==='c'){ const a=evalExpr(argNodes[argIdx++],env); result+= String.fromCharCode(a.v); i++; continue; }
+      if(spec==='%'){ result+='%'; i++; continue; }
+      result += fmt[i]; continue;
+    }
+    result += fmt[i];
+  }
+  return result;
+}
+function execExprStmtValue(exprNode, env){
+  if(exprNode.type === 'Assign'){
+    const newVal = doAssign(exprNode.name, exprNode.op, exprNode.value, env);
+    return `${exprNode.name} ${exprNode.op} ${exprToStr(exprNode.value)}  →  ${exprNode.name} = ${newVal}`;
+  } else {
+    const before = exprToStr(exprNode);
+    const result = evalExpr(exprNode, env);
+    return `${before}  →  ผลลัพธ์ = ${result.v}`;
+  }
+}
+function* execList(stmts, env){ for(const s of stmts) yield* execStmt(s, env); }
+function* execStmt(s, env){
+  switch(s.type){
+    case 'Block': yield* execList(s.body, env); break;
+    case 'VarDecl': {
+      const names=[];
+      for(const d of s.decls){
+        const val = d.init ? evalExpr(d.init, env).v : 0;
+        env.vars[d.name] = { type: s.varType, value: castValue(s.varType, val) };
+        names.push(d.name + (d.init? ` = ${env.vars[d.name].value}`:''));
+      }
+      yield { line:s.line, note: `ประกาศตัวแปร: ${s.varType} ${names.join(', ')}` };
+      break;
+    }
+    case 'ExprStmt': { const note = execExprStmtValue(s.expr, env); yield { line:s.line, note }; break; }
+    case 'If': {
+      const cond = evalExpr(s.cond, env);
+      yield { line:s.line, note:`if (${exprToStr(s.cond)}) → ${cond.v!==0?'จริง (TRUE)':'เท็จ (FALSE)'}` };
+      if(cond.v!==0) yield* execStmt(s.then, env);
+      else if(s.else) yield* execStmt(s.else, env);
+      break;
+    }
+    case 'For': {
+      if(s.init) yield* execStmt(s.init, env);
+      while(true){
+        const cond = s.cond ? evalExpr(s.cond, env) : {v:1};
+        yield { line:s.line, note:`ตรวจเงื่อนไขลูป for (${s.cond?exprToStr(s.cond):'ไม่มีเงื่อนไข'}) → ${cond.v!==0?'จริง เข้าลูป':'เท็จ ออกจากลูป'}` };
+        if(cond.v===0) break;
+        yield* execStmt(s.body, env);
+        if(s.update) yield* execStmt(s.update, env);
+      }
+      break;
+    }
+    case 'While': {
+      while(true){
+        const cond = evalExpr(s.cond, env);
+        yield { line:s.line, note:`ตรวจเงื่อนไข while (${exprToStr(s.cond)}) → ${cond.v!==0?'จริง เข้าลูป':'เท็จ ออกจากลูป'}` };
+        if(cond.v===0) break;
+        yield* execStmt(s.body, env);
+      }
+      break;
+    }
+    case 'DoWhile': {
+      while(true){
+        yield* execStmt(s.body, env);
+        const cond = evalExpr(s.cond, env);
+        yield { line:s.line, note:`ตรวจเงื่อนไข do-while (${exprToStr(s.cond)}) → ${cond.v!==0?'จริง ทำซ้ำ':'เท็จ จบลูป'}` };
+        if(cond.v===0) break;
+      }
+      break;
+    }
+    case 'Printf': {
+      const text = formatPrintf(s.format, s.args, env);
+      env.output.push(text);
+      yield { line:s.line, note:`printf → พิมพ์ออกจอ: "${text.replace(/\n/g,'\\n')}"` };
+      break;
+    }
+    default: throw new Error('ไม่รองรับ statement ชนิด '+s.type);
+  }
+}
+function runProgram(src, maxSteps=3000){
+  const tokens = tokenize(src);
+  const program = parseProgram(tokens);
+  const env = { vars:{}, output:[] };
+  const gen = execList(program, env);
+  const steps = [];
+  let count=0, r;
+  while(!(r = gen.next()).done){
+    steps.push({ line:r.value.line, note:r.value.note, vars: JSON.parse(JSON.stringify(env.vars)), output: env.output.join('') });
+    count++;
+    if(count>maxSteps) throw new Error('เกินจำนวนขั้นตอนสูงสุด ('+maxSteps+' ขั้นตอน) — โค้ดอาจเป็น infinite loop กรุณาตรวจสอบเงื่อนไขลูป');
+  }
+  return steps;
+}
+
+/* ================= UI wiring ================= */
+const PRESETS = {
+  'Prefix vs Postfix (จุดหลอก กว.)': `int x = 5;
+int y;
+y = x++;      // postfix: y ได้ค่าเก่าของ x (5) แล้ว x ค่อยเพิ่มเป็น 6
+int z = ++x;  // prefix: x เพิ่มเป็น 7 ก่อน แล้ว z ได้ค่าใหม่ (7)`,
+  'if-else': `int a = 10;
+int b = 20;
+int maxVal;
+if (a > b) {
+  maxVal = a;
+} else {
+  maxVal = b;
+}`,
+  'for-loop สะสมผลรวม': `int sum = 0;
+for (int i = 1; i <= 5; i++) {
+  sum = sum + i;
+}
+printf("sum = %d", sum);`,
+  'while-loop + printf': `int i = 0;
+while (i < 3) {
+  printf("i = %d\\n", i);
+  i++;
+}`,
+  'do-while': `int n = 0;
+do {
+  n++;
+} while (n < 3);`,
+  'หาร int ตัดเศษ (trap)': `int a = 7;
+int b = 2;
+int c = a / b;
+float d = a / 2.0;`
+};
+const presetsEl = document.getElementById('presets');
+Object.keys(PRESETS).forEach(name=>{
+  const b = document.createElement('button');
+  b.textContent = name;
+  b.addEventListener('click', ()=>{ document.getElementById('codeInput').value = PRESETS[name]; run(); });
+  presetsEl.appendChild(b);
+});
+document.getElementById('codeInput').value = PRESETS['Prefix vs Postfix (จุดหลอก กว.)'];
+
+let steps = [], idx = 0, autoTimer = null, sourceLines = [], colOrder = [];
+const codePane = document.getElementById('codePane');
+const traceTable = document.getElementById('traceTable');
+const outPane = document.getElementById('outPane');
+const stepInfo = document.getElementById('stepInfo');
+const idxLabel = document.getElementById('idxLabel');
+const stage = document.getElementById('stage');
+const errbox = document.getElementById('errbox');
+const btnPrev = document.getElementById('btnPrev');
+const btnNext = document.getElementById('btnNext');
+const btnAuto = document.getElementById('btnAuto');
+const btnEnd = document.getElementById('btnEnd');
+
+function run(){
+  stopAuto();
+  errbox.style.display = 'none';
+  const src = document.getElementById('codeInput').value;
+  try{
+    steps = runProgram(src);
+    if(steps.length===0) throw new Error('ไม่พบคำสั่งที่ทำงานได้ในโค้ดนี้');
+    sourceLines = src.split('\n');
+    colOrder = [];
+    steps.forEach(s=>{ Object.keys(s.vars).forEach(k=>{ if(!colOrder.includes(k)) colOrder.push(k); }); });
+    idx = 0;
+    stage.style.display = 'block';
+    buildCodePane();
+    buildTraceHeader();
+    showStep();
+  }catch(err){
+    stage.style.display = 'none';
+    errbox.style.display = 'block';
+    errbox.textContent = '✘ ' + err.message;
+  }
+}
+function buildCodePane(){
+  codePane.innerHTML = '';
+  sourceLines.forEach((txt, i)=>{
+    const row = document.createElement('div');
+    row.className = 'ln';
+    row.id = 'codeline-'+(i+1);
+    row.innerHTML = `<span class="num">${i+1}</span><span class="txt"></span>`;
+    row.querySelector('.txt').textContent = txt;
+    codePane.appendChild(row);
+  });
+}
+function buildTraceHeader(){
+  traceTable.innerHTML = `<thead><tr><th>ขั้นที่</th>${colOrder.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody id="traceBody"></tbody>`;
+}
+function showStep(){
+  const s = steps[idx];
+  // highlight code line
+  codePane.querySelectorAll('.ln.active').forEach(el=>el.classList.remove('active'));
+  const lineEl = document.getElementById('codeline-'+s.line);
+  if(lineEl){ lineEl.classList.add('active'); lineEl.scrollIntoView({block:'center', behavior:'smooth'}); }
+  // rebuild trace table rows up to idx
+  const body = document.getElementById('traceBody');
+  body.innerHTML = '';
+  let prevVars = {};
+  for(let i=0;i<=idx;i++){
+    const st = steps[i];
+    const tr = document.createElement('tr');
+    if(i===idx) tr.className = 'current';
+    let cells = `<td class="step-no">${i+1}</td>`;
+    colOrder.forEach(c=>{
+      const has = st.vars.hasOwnProperty(c);
+      const val = has ? st.vars[c].value : '';
+      const changed = has && prevVars[c] !== undefined && prevVars[c] !== val;
+      const isNew = has && prevVars[c] === undefined;
+      cells += `<td class="${(changed||isNew)?'changed':''}">${has? val : '-'}</td>`;
+    });
+    tr.innerHTML = cells;
+    body.appendChild(tr);
+    prevVars = {};
+    colOrder.forEach(c=>{ if(st.vars.hasOwnProperty(c)) prevVars[c] = st.vars[c].value; });
+  }
+  const lastRow = body.lastElementChild;
+  if(lastRow) lastRow.scrollIntoView({block:'nearest'});
+  // output
+  outPane.textContent = s.output || '(ยังไม่มี output)';
+  // info
+  stepInfo.textContent = `ขั้นตอนที่ ${idx+1} (บรรทัด ${s.line}): ${s.note}`;
+  idxLabel.textContent = `${idx+1} / ${steps.length}`;
+  btnPrev.disabled = idx===0;
+  btnNext.disabled = idx===steps.length-1;
+}
+btnPrev.addEventListener('click', ()=>{ stopAuto(); if(idx>0){idx--; showStep();} });
+btnNext.addEventListener('click', ()=>{ stopAuto(); if(idx<steps.length-1){idx++; showStep();} });
+btnEnd.addEventListener('click', ()=>{ stopAuto(); idx = steps.length-1; showStep(); });
+function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer=null; btnAuto.textContent='▶▶ เล่นอัตโนมัติ'; } }
+btnAuto.addEventListener('click', ()=>{
+  if(autoTimer){ stopAuto(); return; }
+  btnAuto.textContent = '⏸ หยุดชั่วคราว';
+  autoTimer = setInterval(()=>{
+    if(idx>=steps.length-1){ stopAuto(); return; }
+    idx++; showStep();
+  }, 1100);
+});
+document.getElementById('btnRun').addEventListener('click', run);
+run();
+
+/* ================= Quiz ================= */
+const QUESTIONS = [
+  {
+    q: '1) กำหนด int x = 5; แล้วรันคำสั่ง y = x++; ค่า y คือเท่าใด?',
+    opts: ['5','6','4','เกิด error'],
+    ans: 0,
+    exp: 'ถูกต้อง — x++ เป็น postfix: นำค่าเดิม (5) ไปกำหนดให้ y ก่อน แล้ว x จึงเพิ่มเป็น 6 ทีหลัง'
+  },
+  {
+    q: '2) กำหนด int x = 5; แล้วรันคำสั่ง z = ++x; ค่า z คือเท่าใด?',
+    opts: ['5','6','4','เกิด error'],
+    ans: 1,
+    exp: 'ถูกต้อง — ++x เป็น prefix: x เพิ่มเป็น 6 ก่อน แล้วจึงนำค่าใหม่ (6) ไปกำหนดให้ z'
+  },
+  {
+    q: '3) for (int i = 1; i <= 5; i++) sum += i; ลูปนี้ทำงานกี่รอบ?',
+    opts: ['4 รอบ','5 รอบ','6 รอบ','ไม่จำกัด'],
+    ans: 1,
+    exp: 'ถูกต้อง — i วิ่งค่า 1,2,3,4,5 (เงื่อนไข i<=5 ยังจริง) รวม 5 รอบ แล้วหยุดเมื่อ i=6'
+  },
+  {
+    q: '4) int a=7, b=2; int c = a / b; ค่า c คือเท่าใด?',
+    opts: ['3.5','3','4','3.0'],
+    ans: 1,
+    exp: 'ถูกต้อง — ตัวแปรทั้งสองเป็น int การหารจึงตัดเศษทิ้ง (7/2 = 3.5 → ตัดเหลือ 3)'
+  }
+];
+const quizEl = document.getElementById('quiz');
+QUESTIONS.forEach((item)=>{
+  const box = document.createElement('div');
+  box.className = 'quiz-item';
+  box.innerHTML = `<p class="q">${item.q}</p><div class="opts"></div><div class="fb"></div>`;
+  const optsEl = box.querySelector('.opts');
+  item.opts.forEach((opt, oi)=>{
+    const b = document.createElement('button');
+    b.textContent = opt;
+    b.addEventListener('click', ()=>{
+      const fb = box.querySelector('.fb');
+      const allBtns = optsEl.querySelectorAll('button');
+      allBtns.forEach(bb=>bb.disabled=true);
+      if(oi === item.ans){ b.classList.add('correct'); fb.style.color = 'var(--success)'; fb.textContent = '✔ ถูกต้อง! ' + item.exp; }
+      else{ b.classList.add('wrong'); allBtns[item.ans].classList.add('correct'); fb.style.color = 'var(--danger)'; fb.textContent = '✘ ยังไม่ถูก — ' + item.exp; }
+      fb.style.display='block';
+    });
+    optsEl.appendChild(b);
+  });
+  quizEl.appendChild(box);
+});
+</script>
+</body>
+</html>

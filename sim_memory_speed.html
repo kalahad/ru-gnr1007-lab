@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 1: แข่งความเร็วหน่วยความจำ | GNR 1007</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#16306C; --navy-dark:#0d1f4d; --navy-light:#24408a;
+  --gold:#C9A227; --gold-light:#e8cf6f;
+  --bg:#eef1f8; --card:#ffffff;
+  --danger:#c0392b; --danger-bg:#fdeaea;
+  --success:#1e8449; --success-bg:#eafaf1;
+  --text:#1c2333; --muted:#657085; --radius:16px;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Noto Sans Thai','Sarabun',sans-serif;background:linear-gradient(180deg,#eef1f8,#f8f9fd 400px);color:var(--text);}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px;}
+header.top{background:linear-gradient(120deg,var(--navy-dark),var(--navy));color:#fff;padding:22px 20px;display:flex;align-items:center;gap:18px;box-shadow:0 4px 18px rgba(22,48,108,.25);}
+header.top img{height:56px;width:auto;border-radius:8px;background:#fff;padding:4px;}
+header.top .ttl{flex:1;}
+header.top h1{margin:0;font-size:1.35rem;font-weight:800;}
+header.top p{margin:4px 0 0;font-size:.85rem;opacity:.85;font-weight:500;}
+.badge{display:inline-block;background:var(--gold);color:var(--navy-dark);font-weight:700;font-size:.75rem;padding:3px 12px;border-radius:20px;margin-bottom:6px;}
+.card{background:var(--card);border-radius:var(--radius);padding:22px 24px;margin-top:22px;box-shadow:0 2px 14px rgba(22,48,108,.08);border:1px solid #e4e8f3;}
+.card h2{margin:0 0 10px;color:var(--navy);font-size:1.15rem;border-left:6px solid var(--gold);padding-left:12px;}
+.intro{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;}
+.intro p{flex:1;min-width:260px;line-height:1.85;margin:0;color:var(--text);}
+.chip{background:#eef1f8;border-radius:10px;padding:10px 14px;font-size:.85rem;color:var(--navy-dark);font-weight:600;min-width:150px;text-align:center;}
+.chip b{display:block;font-size:1.05rem;color:var(--navy);}
+
+/* Race track */
+.track-controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:18px;}
+button.primary{background:var(--navy);color:#fff;border:none;padding:12px 26px;border-radius:10px;font-family:inherit;font-weight:700;font-size:.95rem;cursor:pointer;box-shadow:0 3px 10px rgba(22,48,108,.3);transition:.15s;}
+button.primary:hover{background:var(--navy-light);transform:translateY(-1px);}
+button.secondary{background:#fff;color:var(--navy);border:2px solid var(--navy);padding:10px 22px;border-radius:10px;font-family:inherit;font-weight:700;font-size:.9rem;cursor:pointer;}
+button.secondary:hover{background:#eef1f8;}
+label.toggle{display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:600;color:var(--navy-dark);background:#f5f7fc;padding:8px 14px;border-radius:10px;cursor:pointer;user-select:none;}
+.lane{position:relative;display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.lane .tag{width:130px;flex-shrink:0;text-align:right;font-weight:700;color:var(--navy);font-size:.95rem;}
+.lane .tag small{display:block;font-weight:500;color:var(--muted);font-size:.72rem;}
+.lane .path{position:relative;flex:1;height:46px;background:repeating-linear-gradient(90deg,#e2e7f3,#e2e7f3 18px,#eef1f8 18px,#eef1f8 36px);border-radius:10px;border:1px solid #d7deee;overflow:hidden;}
+.lane .path.ssd{opacity:.9;outline:2px dashed var(--gold);outline-offset:-2px;}
+.lane .flag{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:1.3rem;}
+.lane .runner{position:absolute;left:4px;top:50%;transform:translate(0,-50%);font-size:1.6rem;transition:left linear;will-change:left;}
+.lane .time{width:150px;flex-shrink:0;font-size:.8rem;font-weight:700;color:var(--navy-dark);text-align:left;}
+.lane .time .rank{display:none;background:var(--gold);color:var(--navy-dark);border-radius:20px;padding:1px 9px;font-size:.72rem;margin-right:6px;}
+.lane.done .time .rank{display:inline-block;}
+
+table.spec{width:100%;border-collapse:collapse;margin-top:8px;font-size:.88rem;}
+table.spec th,table.spec td{border:1px solid #dfe4f0;padding:9px 10px;text-align:center;}
+table.spec th{background:var(--navy);color:#fff;font-weight:700;}
+table.spec td.name{text-align:right;font-weight:700;color:var(--navy-dark);background:#f5f7fc;}
+
+.trap{background:var(--danger-bg);border:1.5px solid #f0b7b0;border-left:6px solid var(--danger);border-radius:12px;padding:14px 18px;margin-top:16px;}
+.trap b{color:var(--danger);}
+
+.quiz-item{border:1px solid #e4e8f3;border-radius:12px;padding:14px 16px;margin-bottom:14px;}
+.quiz-item p.q{font-weight:700;margin:0 0 10px;color:var(--navy-dark);}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.opts button{text-align:left;background:#f7f8fc;border:1.5px solid #dfe4f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:.87rem;cursor:pointer;color:var(--text);}
+.opts button:hover{border-color:var(--navy-light);}
+.opts button.correct{background:var(--success-bg);border-color:var(--success);color:var(--success);font-weight:700;}
+.opts button.wrong{background:var(--danger-bg);border-color:var(--danger);color:var(--danger);font-weight:700;}
+.fb{margin-top:8px;font-size:.85rem;font-weight:600;display:none;}
+
+.backHome{position:fixed;top:16px;right:16px;z-index:998;background:rgba(10,26,64,.9);color:#fff;text-decoration:none;font-weight:700;font-size:.8rem;padding:9px 18px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px);transition:.2s;}
+.backHome:hover{background:var(--gold);color:var(--navy-dark);}
+.labGate{position:fixed;inset:0;background:linear-gradient(135deg,rgba(10,26,64,.97),rgba(22,48,108,.97));z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+.labGateBox{background:#fff;border-radius:20px;padding:34px 30px;max-width:380px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.4);}
+.labGateIcon{font-size:3rem;margin-bottom:10px;}
+.labGateBox h2{color:var(--navy-dark);font-size:1.15rem;margin:0 0 10px;}
+.labGateBox p{color:var(--muted);font-size:.88rem;line-height:1.7;margin:0 0 16px;}
+#labGateCodeBox input{width:100%;padding:10px 14px;border-radius:10px;border:2px solid #d7deee;font-family:'Courier New',monospace;font-size:.95rem;text-align:center;margin-bottom:10px;box-sizing:border-box;}
+#labGateCodeBox button{width:100%;background:var(--navy);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit;}
+#labGateCodeBox button:hover{background:var(--navy-light);}
+.labGateBack{display:inline-block;margin-top:16px;color:var(--navy);font-weight:700;font-size:.82rem;text-decoration:none;}
+.labGateBack:hover{text-decoration:underline;}
+footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;line-height:1.8;}
+@media(max-width:680px){
+  .lane .tag{width:78px;font-size:.78rem;}
+  .lane .time{width:100px;font-size:.7rem;}
+  .opts{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<a href="index.html" class="backHome" title="กลับหน้ารวมห้องทดลอง">← กลับหน้ารวม</a>
+<div id="labGate" class="labGate" style="display:none">
+  <div class="labGateBox">
+    <div class="labGateIcon" id="labGateIcon">🔒</div>
+    <h2 id="labGateTitle">ห้องนี้ปิดให้บริการชั่วคราว</h2>
+    <p id="labGateMsg">ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว</p>
+    <div id="labGateCodeBox" style="display:none">
+      <input type="text" id="labGateCodeInput" placeholder="กรอกรหัสเข้าใช้งาน" autocomplete="off">
+      <button id="labGateUnlockBtn">ปลดล็อก</button>
+      <p id="labGateCodeErr" style="display:none;color:#c0392b;font-size:.78rem;margin-top:8px;font-weight:700">รหัสไม่ถูกต้อง ลองใหม่อีกครั้ง</p>
+    </div>
+    <a href="index.html" class="labGateBack">← กลับหน้ารวมห้องทดลอง</a>
+  </div>
+</div>
+<script src="labs-config.js"></script>
+<script>
+(function(){
+  var FILE = 'sim_memory_speed.html';
+  function getCfg(){
+    try{ return (window.LAB_CONFIG && window.LAB_CONFIG.labs && window.LAB_CONFIG.labs[FILE]) || {open:true, locked:false}; }catch(e){ return {open:true, locked:false}; }
+  }
+  function getUnlocked(){ try{ return JSON.parse(localStorage.getItem('gnr1007_unlocked_v1')||'[]'); }catch(e){ return []; } }
+  function unlock(){ try{ var u=getUnlocked(); if(u.indexOf(FILE)===-1){ u.push(FILE); localStorage.setItem('gnr1007_unlocked_v1', JSON.stringify(u)); } }catch(e){} }
+  var cfg = getCfg();
+  var gate = document.getElementById('labGate');
+  if(!cfg.open){
+    gate.style.display='flex';
+    document.getElementById('labGateIcon').textContent='🚧';
+    document.getElementById('labGateTitle').textContent='ห้องนี้ปิดให้บริการชั่วคราว';
+    document.getElementById('labGateMsg').textContent='ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว กรุณาติดต่อผู้สอน หรือกลับไปเลือกห้องอื่น';
+  } else if(cfg.locked && getUnlocked().indexOf(FILE)===-1){
+    gate.style.display='flex';
+    document.getElementById('labGateIcon').textContent='🔒';
+    document.getElementById('labGateTitle').textContent='ห้องทดลองนี้ต้องใช้รหัสเข้าใช้งาน';
+    document.getElementById('labGateMsg').textContent = cfg.price ? ('ระดับการเข้าถึง: '+cfg.price+' — กรอกรหัสที่ได้รับจากผู้สอน') : 'กรอกรหัสที่ได้รับจากผู้สอนเพื่อเข้าใช้งาน';
+    document.getElementById('labGateCodeBox').style.display='block';
+    document.getElementById('labGateUnlockBtn').addEventListener('click', function(){
+      var v = document.getElementById('labGateCodeInput').value.trim();
+      if(v && cfg.code && v.toLowerCase() === String(cfg.code).toLowerCase()){
+        unlock();
+        gate.style.display='none';
+      } else {
+        document.getElementById('labGateCodeErr').style.display='block';
+      }
+    });
+    document.getElementById('labGateCodeInput').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('labGateUnlockBtn').click(); });
+  }
+})();
+</script>
+<header class="top">
+  <img src="eng_ru_logo.png" alt="โลโก้ วิศวกรรมศาสตร์ ม.รามคำแหง" onerror="this.style.display='none'">
+  <div class="ttl">
+    <h1>สื่อโต้ตอบ บทที่ 1 — แข่งความเร็วหน่วยความจำ</h1>
+    <p>GNR 1007 เตรียมสอบ กว. Computer Programming | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <span class="badge">ทำไมบทนี้สำคัญ</span>
+    <div class="intro">
+      <p>ข้อสอบ กว. ชอบถาม "เรียงลำดับความเร็วหน่วยความจำจากเร็วไปช้า" ซึ่งเป็น <b>บททำคะแนนง่าย</b> เพียงจำลำดับให้แม่น: <b>Register &gt; Cache &gt; RAM &gt; HDD</b> — ยิ่งเร็วยิ่งราคาแพงและจุข้อมูลได้น้อย ยิ่งช้ายิ่งราคาถูกและจุได้มาก กดปุ่มด้านล่างเพื่อดูการแข่งขันแบบภาพเคลื่อนไหว</p>
+      <div class="chip">น้ำหนักข้อสอบ<b>สูง</b></div>
+      <div class="chip">สอนช่วงที่<b>1</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>สนามแข่งความเร็ว</h2>
+    <div class="track-controls">
+      <button class="primary" id="btnRace">▶ เริ่มการแข่งขัน</button>
+      <button class="secondary" id="btnReset">↺ รีเซ็ต</button>
+      <label class="toggle"><input type="checkbox" id="chkSSD" checked> แสดงเลน SSD (เสริม)</label>
+    </div>
+    <div id="lanes"></div>
+    <p style="font-size:.78rem;color:var(--muted);margin-top:10px">* แอนิเมชันย่อเวลาลงให้มองเห็นด้วยตา ไม่ได้เป็นสัดส่วนจริง เวลาจริงต่างกันหลายล้านเท่า (ดูตัวเลขจริงในตารางด้านล่าง)</p>
+  </div>
+
+  <div class="card">
+    <h2>ตารางเปรียบเทียบ (ตัวเลขอ้างอิงสำหรับสอบ)</h2>
+    <table class="spec">
+      <tr><th>อันดับ</th><th>หน่วยความจำ</th><th>เวลาเข้าถึงโดยประมาณ</th><th>ความจุ</th><th>ราคาต่อ GB</th></tr>
+      <tr><td>1 (เร็วสุด)</td><td class="name">Register</td><td>~0.3 ns</td><td>น้อยที่สุด (ไม่กี่ไบต์)</td><td>แพงที่สุด</td></tr>
+      <tr><td>2</td><td class="name">Cache (L1–L3)</td><td>~1–20 ns</td><td>เล็ก (KB–MB)</td><td>แพงมาก</td></tr>
+      <tr><td>3</td><td class="name">RAM</td><td>~100 ns</td><td>ปานกลาง (GB)</td><td>ปานกลาง</td></tr>
+      <tr id="rowSSD"><td>4 (เสริม)</td><td class="name">SSD</td><td>~0.1 ms (100,000 ns)</td><td>มาก (GB–TB)</td><td>ถูก</td></tr>
+      <tr><td>5 (ช้าสุด)</td><td class="name">HDD</td><td>~10 ms (10,000,000 ns)</td><td>มากที่สุด</td><td>ถูกที่สุด</td></tr>
+    </table>
+    <div class="trap">
+      <b>จุดหลอก กว.:</b> โจทย์มักสลับให้ "HDD เร็วกว่า Cache" หรือถามว่า "หน่วยความจำใดจุข้อมูลได้มากที่สุดแต่ช้าที่สุด" (ตอบ HDD) — จำหลักไว้ว่า <b>ยิ่งใกล้ CPU ยิ่งเร็วแต่ยิ่งจุน้อย</b> ส่วน SSD เป็นสื่อบันทึกถาวรเช่นเดียวกับ HDD แต่เร็วกว่ามาก (ไม่มี RAM ในกลุ่มนี้เพราะ RAM เป็นหน่วยความจำหลักที่ข้อมูลหายเมื่อปิดเครื่อง)
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ทดสอบความเข้าใจ</h2>
+    <div id="quiz"></div>
+  </div>
+
+</div>
+
+<footer>
+  พัฒนาโดย ผศ.ดร.กุลวลัญช์ วรุณสิน | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง<br>
+  ไฟล์นี้เปิดใช้งานได้แบบออฟไลน์ (หากไม่มีอินเทอร์เน็ต ฟอนต์จะสลับเป็นฟอนต์ไทยของระบบโดยอัตโนมัติ)
+</footer>
+
+<script>
+const LANES = [
+  {key:'reg', name:'Register', small:'ทะเบียนใน CPU', ns:0.3,  label:'~0.3 ns', dur:0.7},
+  {key:'cache', name:'Cache', small:'L1–L3', ns:10, label:'~10 ns', dur:1.5},
+  {key:'ram', name:'RAM', small:'หน่วยความจำหลัก', ns:100, label:'~100 ns', dur:2.6},
+  {key:'ssd', name:'SSD', small:'สื่อบันทึกถาวร (เสริม)', ns:100000, label:'~0.1 ms', dur:4.0, ssd:true},
+  {key:'hdd', name:'HDD', small:'จานหมุน', ns:10000000, label:'~10 ms', dur:5.6},
+];
+
+const lanesEl = document.getElementById('lanes');
+function buildLanes(){
+  lanesEl.innerHTML = '';
+  LANES.forEach(l=>{
+    if(l.ssd && !document.getElementById('chkSSD').checked) return;
+    const div = document.createElement('div');
+    div.className = 'lane';
+    div.id = 'lane-'+l.key;
+    div.innerHTML = `
+      <div class="tag">${l.name}<small>${l.small}</small></div>
+      <div class="path ${l.ssd?'ssd':''}" id="path-${l.key}">
+        <span class="runner" id="runner-${l.key}">📦</span>
+        <span class="flag">🏁</span>
+      </div>
+      <div class="time" id="time-${l.key}"><span class="rank"></span>${l.label} (จริง)</div>
+    `;
+    lanesEl.appendChild(div);
+  });
+}
+buildLanes();
+document.getElementById('chkSSD').addEventListener('change', buildLanes);
+
+let running = false;
+let finishOrder = 0;
+
+document.getElementById('btnRace').addEventListener('click', ()=>{
+  if(running) return;
+  running = true;
+  finishOrder = 0;
+  const activeLanes = LANES.filter(l => !l.ssd || document.getElementById('chkSSD').checked);
+  activeLanes.forEach(l=>{
+    const runner = document.getElementById('runner-'+l.key);
+    const path = document.getElementById('path-'+l.key);
+    const laneEl = document.getElementById('lane-'+l.key);
+    laneEl.classList.remove('done');
+    laneEl.querySelector('.rank').style.display='none';
+    runner.style.transition = 'none';
+    runner.style.left = '4px';
+    // force reflow
+    void runner.offsetWidth;
+    const maxLeft = path.clientWidth - 34;
+    requestAnimationFrame(()=>{
+      runner.style.transition = `left ${l.dur}s cubic-bezier(.4,.1,.3,1)`;
+      runner.style.left = maxLeft + 'px';
+    });
+    setTimeout(()=>{
+      finishOrder++;
+      laneEl.classList.add('done');
+      const rankEl = laneEl.querySelector('.rank');
+      rankEl.style.display='inline-block';
+      rankEl.textContent = 'อันดับ '+finishOrder;
+    }, l.dur*1000 + 50);
+  });
+  const maxDur = Math.max(...activeLanes.map(l=>l.dur));
+  setTimeout(()=>{ running = false; }, maxDur*1000 + 200);
+});
+
+document.getElementById('btnReset').addEventListener('click', buildLanes);
+
+// Quiz
+const QUESTIONS = [
+  {
+    q: '1) เรียงลำดับความเร็วจากเร็วไปช้าข้อใดถูกต้อง?',
+    opts: ['Register > Cache > RAM > HDD','Cache > Register > RAM > HDD','RAM > Cache > Register > HDD','HDD > RAM > Cache > Register'],
+    ans: 0,
+    exp: 'ถูกต้อง — ยิ่งอยู่ใกล้ CPU ยิ่งเร็ว: Register อยู่ใน CPU เอง, ตามด้วย Cache, RAM, และ HDD ช้าที่สุด'
+  },
+  {
+    q: '2) หน่วยความจำใดมีความจุมากที่สุดแต่เข้าถึงข้อมูลช้าที่สุด?',
+    opts: ['Register','Cache','RAM','HDD'],
+    ans: 3,
+    exp: 'ถูกต้อง — HDD จุข้อมูลได้มากที่สุด (หลัก TB) แต่เป็นจานหมุนจึงเข้าถึงช้าที่สุดในกลุ่มนี้'
+  },
+  {
+    q: '3) ข้อใด "ไม่ถูกต้อง" เกี่ยวกับ Cache Memory?',
+    opts: ['อยู่ระหว่าง CPU กับ RAM','ทำหน้าที่พักข้อมูลที่ CPU ใช้บ่อย','มีความจุมากกว่า RAM','เร็วกว่า RAM'],
+    ans: 2,
+    exp: 'ถูกต้อง — ข้อที่ผิดคือ "มีความจุมากกว่า RAM" เพราะจริงๆ Cache มีความจุน้อยกว่า RAM มาก แต่เร็วกว่า'
+  }
+];
+
+const quizEl = document.getElementById('quiz');
+QUESTIONS.forEach((item, qi)=>{
+  const box = document.createElement('div');
+  box.className = 'quiz-item';
+  box.innerHTML = `<p class="q">${item.q}</p><div class="opts"></div><div class="fb"></div>`;
+  const optsEl = box.querySelector('.opts');
+  item.opts.forEach((opt, oi)=>{
+    const b = document.createElement('button');
+    b.textContent = opt;
+    b.addEventListener('click', ()=>{
+      const fb = box.querySelector('.fb');
+      const allBtns = optsEl.querySelectorAll('button');
+      allBtns.forEach(bb=>bb.disabled=true);
+      if(oi === item.ans){
+        b.classList.add('correct');
+        fb.style.color = 'var(--success)';
+        fb.textContent = '✔ ถูกต้อง! ' + item.exp;
+      }else{
+        b.classList.add('wrong');
+        allBtns[item.ans].classList.add('correct');
+        fb.style.color = 'var(--danger)';
+        fb.textContent = '✘ ยังไม่ถูก — ' + item.exp;
+      }
+      fb.style.display='block';
+    });
+    optsEl.appendChild(b);
+  });
+  quizEl.appendChild(box);
+});
+</script>
+</body>
+</html>

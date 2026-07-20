@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GNR 1007 Interactive Lab | ห้องทดลองเสมือนจริง เตรียมสอบ กว. Computer Programming</title>
+<meta name="description" content="ห้องทดลองเสมือนจริง 7 สถานี เตรียมสอบใบอนุญาตภาคีวิศวกร กว. วิชา Computer Programming | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง">
+<meta property="og:title" content="GNR 1007 Interactive Lab — ห้องทดลองเสมือนจริงเตรียมสอบ กว.">
+<meta property="og:description" content="7 สื่อโต้ตอบ เล่นได้จริงในเบราว์เซอร์ ครอบคลุมบททำคะแนนสำคัญของข้อสอบ กว. Computer Programming">
+<meta property="og:type" content="website">
+<link rel="icon" href="eng_ru_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800;900&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#16306C; --navy-dark:#0a1a40; --navy-light:#24408a; --navy-lighter:#3457a8;
+  --gold:#C9A227; --gold-light:#eaD077; --gold-dark:#8f7015;
+  --bg:#eef1f8; --card:#ffffff;
+  --danger:#c0392b; --danger-bg:#fdeaea;
+  --success:#1e8449; --success-bg:#eafaf1;
+  --text:#1c2333; --muted:#657085; --radius:20px;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;font-family:'Noto Sans Thai','Sarabun',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
+
+/* ---------- Hero ---------- */
+.hero{
+  position:relative;
+  background:radial-gradient(circle at 15% 20%, rgba(201,162,39,.25), transparent 45%),
+             radial-gradient(circle at 85% 80%, rgba(52,87,168,.35), transparent 50%),
+             linear-gradient(135deg, var(--navy-dark), var(--navy) 55%, var(--navy-light));
+  color:#fff;
+  padding:56px 20px 90px;
+  overflow:hidden;
+}
+.hero::before, .hero::after{
+  content:'';
+  position:absolute; border-radius:50%;
+  background:radial-gradient(circle, rgba(201,162,39,.35), transparent 70%);
+  animation:floaty 9s ease-in-out infinite;
+}
+.hero::before{ width:280px; height:280px; top:-90px; left:-70px; }
+.hero::after{ width:220px; height:220px; bottom:-80px; right:-40px; animation-delay:2.5s; }
+@keyframes floaty{ 0%,100%{transform:translateY(0) scale(1);} 50%{transform:translateY(-18px) scale(1.06);} }
+
+.heroInner{max-width:1100px;margin:0 auto;position:relative;z-index:2;}
+.heroTop{display:flex;align-items:center;gap:16px;margin-bottom:34px;flex-wrap:wrap;}
+.heroTop img{height:58px;background:#fff;border-radius:10px;padding:5px;box-shadow:0 4px 16px rgba(0,0,0,.25);}
+.heroTop .org{font-size:.85rem;opacity:.85;font-weight:600;line-height:1.5;}
+.heroTop .org b{display:block;font-size:.95rem;opacity:1;}
+
+.heroTitle{text-align:center;}
+.kicker{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(4px);padding:7px 18px;border-radius:30px;font-size:.8rem;font-weight:700;letter-spacing:.5px;margin-bottom:18px;}
+.kicker .dot{width:8px;height:8px;border-radius:50%;background:var(--gold);animation:pulse 1.6s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.4);}}
+.heroTitle h1{font-size:clamp(1.9rem,4.4vw,3.1rem);font-weight:900;margin:0 0 14px;line-height:1.25;}
+.heroTitle h1 span{background:linear-gradient(90deg,var(--gold-light),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.heroTitle p{font-size:1.02rem;opacity:.9;max-width:660px;margin:0 auto;line-height:1.9;font-weight:500;}
+
+.heroStats{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:34px;}
+.statCard{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(6px);border-radius:16px;padding:16px 26px;text-align:center;min-width:130px;}
+.statCard .num{font-size:1.7rem;font-weight:900;color:var(--gold-light);}
+.statCard .lbl{font-size:.76rem;opacity:.85;font-weight:600;margin-top:2px;}
+
+.progressWrap{max-width:560px;margin:30px auto 0;background:rgba(255,255,255,.12);border-radius:20px;padding:14px 20px;border:1px solid rgba(255,255,255,.2);}
+.progressWrap .plabel{display:flex;justify-content:space-between;font-size:.78rem;font-weight:700;margin-bottom:8px;}
+.progressBarOuter{height:10px;background:rgba(255,255,255,.2);border-radius:10px;overflow:hidden;}
+.progressBarInner{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:10px;transition:width .5s ease;width:0%;}
+
+/* ---------- Body ---------- */
+.wrap{max-width:1100px;margin:-46px auto 0;padding:0 20px 70px;position:relative;z-index:3;}
+
+.toolbar{background:var(--card);border-radius:18px;padding:16px 22px;box-shadow:0 10px 30px rgba(22,48,108,.15);display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:30px;}
+.filterChips{display:flex;gap:8px;flex-wrap:wrap;}
+.filterChips button{border:1.5px solid #dfe4f0;background:#f7f8fc;color:var(--navy-dark);font-family:inherit;font-weight:700;font-size:.8rem;padding:8px 16px;border-radius:20px;cursor:pointer;transition:.15s;}
+.filterChips button:hover{border-color:var(--navy-light);}
+.filterChips button.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+.randomBtn{background:linear-gradient(90deg,var(--gold-dark),var(--gold));color:var(--navy-dark);border:none;font-family:inherit;font-weight:800;font-size:.83rem;padding:10px 20px;border-radius:20px;cursor:pointer;box-shadow:0 4px 12px rgba(201,162,39,.4);}
+.randomBtn:hover{filter:brightness(1.06);}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(300px,1fr));gap:22px;}
+.labCard{
+  background:var(--card); border-radius:22px; overflow:hidden; position:relative;
+  box-shadow:0 8px 24px rgba(22,48,108,.1); border:1px solid #e4e8f3;
+  opacity:0; transform:translateY(24px);
+  animation:riseIn .55s ease forwards;
+  transition:transform .25s, box-shadow .25s;
+  display:flex; flex-direction:column;
+}
+.labCard:hover{transform:translateY(-8px); box-shadow:0 18px 38px rgba(22,48,108,.22);}
+@keyframes riseIn{to{opacity:1;transform:translateY(0);}}
+.labCard .top{
+  background:linear-gradient(135deg,var(--navy-dark),var(--navy-light));
+  color:#fff; padding:22px 22px 46px; position:relative; overflow:hidden;
+}
+.labCard .top::after{content:'';position:absolute;right:-30px;bottom:-30px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.08);}
+.labCard .chapterTag{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);font-size:.72rem;font-weight:800;padding:4px 12px;border-radius:20px;margin-bottom:10px;}
+.labCard .icon{font-size:2.6rem;line-height:1;margin-bottom:10px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25));}
+.labCard .title{font-size:1.12rem;font-weight:800;margin:0;position:relative;z-index:2;}
+.labCard .visited{
+  position:absolute; top:16px; right:16px; background:var(--gold); color:var(--navy-dark);
+  font-size:.7rem; font-weight:800; padding:4px 10px; border-radius:14px; display:none; align-items:center; gap:4px;
+  box-shadow:0 3px 8px rgba(0,0,0,.25);
+}
+.labCard.visited .visited{display:inline-flex;}
+
+.labCard .body{padding:18px 22px 22px;flex:1;display:flex;flex-direction:column;margin-top:-24px;}
+.labCard .desc{background:var(--card);border-radius:14px;padding:14px 16px;font-size:.85rem;line-height:1.75;color:var(--text);box-shadow:0 4px 14px rgba(22,48,108,.08);margin-bottom:14px;}
+.labTags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.tag{font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:14px;}
+.tag.weight-high2{background:#fde3e3;color:#a3241a;}
+.tag.weight-high{background:#fdf1d9;color:var(--gold-dark);}
+.tag.weight-mid{background:#e3ecfd;color:var(--navy);}
+.tag.session{background:#eef1f8;color:var(--navy-dark);}
+
+.labCard .actions{margin-top:auto;display:flex;gap:8px;}
+.btnGo{
+  flex:1; text-align:center; background:var(--navy); color:#fff; text-decoration:none;
+  font-weight:800; font-size:.88rem; padding:12px 16px; border-radius:12px; transition:.2s;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.btnGo:hover{background:var(--navy-light); transform:translateX(2px);}
+.btnCopy{
+  background:#f5f7fc; border:1.5px solid #dfe4f0; color:var(--navy-dark); border-radius:12px;
+  width:46px; cursor:pointer; font-size:1rem; flex-shrink:0;
+}
+.btnCopy:hover{background:#e6eaf6;}
+.btnCopy.copied{background:var(--success-bg); border-color:var(--success); color:var(--success);}
+
+/* ---------- How to use ---------- */
+.howto{background:var(--card);border-radius:var(--radius);padding:26px 28px;margin-top:36px;box-shadow:0 2px 14px rgba(22,48,108,.08);border:1px solid #e4e8f3;}
+.howto h2{margin:0 0 14px;color:var(--navy);font-size:1.15rem;border-left:6px solid var(--gold);padding-left:12px;}
+.howto ol{margin:0;padding-left:22px;line-height:2;color:var(--text);font-size:.92rem;}
+.howto ol li b{color:var(--navy-dark);}
+
+.ghNote{margin-top:20px;background:linear-gradient(135deg,var(--navy-dark),var(--navy));color:#fff;border-radius:var(--radius);padding:22px 26px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.ghNote .icon{font-size:2.2rem;}
+.ghNote p{margin:0;font-size:.88rem;line-height:1.8;opacity:.95;flex:1;min-width:220px;}
+.ghNote code{background:rgba(255,255,255,.15);padding:2px 8px;border-radius:6px;font-family:'Courier New',monospace;}
+
+footer{text-align:center;color:var(--muted);font-size:.8rem;margin-top:40px;line-height:1.9;}
+footer b{color:var(--navy-dark);}
+
+@media(max-width:640px){
+  .heroTop{justify-content:center;text-align:center;}
+  .toolbar{flex-direction:column;align-items:stretch;}
+}
+
+/* ---------- Lab state: closed / locked / price ---------- */
+.labCard.closedCard{opacity:.62;}
+.closedBanner{position:absolute;top:16px;right:16px;background:var(--danger);color:#fff;font-size:.68rem;font-weight:800;padding:4px 11px;border-radius:14px;box-shadow:0 3px 8px rgba(0,0,0,.25);}
+.tag.priceTag{background:#e3ecfd;color:var(--navy);}
+.tag.priceTag.paid{background:#fdf1d9;color:var(--gold-dark);}
+.tag.unlockedTag{background:var(--success-bg);color:var(--success);}
+.lockBox{background:#fff7e0;border:1.5px dashed #e0c164;border-radius:10px;padding:10px 12px;margin-bottom:12px;}
+.lockBox p{margin:0 0 8px;font-size:.76rem;color:#7a5b06;font-weight:700;}
+.lockBox .lockRow{display:flex;gap:6px;}
+.lockBox input{flex:1;min-width:0;font-family:'Courier New',monospace;font-size:.8rem;padding:7px 9px;border-radius:7px;border:1.5px solid #e0c164;}
+.lockBox button{background:var(--gold);color:var(--navy-dark);border:none;padding:7px 12px;border-radius:7px;font-weight:800;cursor:pointer;font-size:.78rem;flex-shrink:0;}
+
+/* ---------- Admin: gear + login modal ---------- */
+.adminGearBtn{position:fixed;bottom:22px;right:22px;z-index:900;width:54px;height:54px;border-radius:50%;background:var(--navy);color:#fff;border:none;font-size:1.4rem;cursor:pointer;box-shadow:0 6px 18px rgba(22,48,108,.45);transition:.2s;}
+.adminGearBtn:hover{transform:rotate(20deg) scale(1.06);background:var(--navy-light);}
+.adminGearBtn.loggedIn{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--navy-dark);}
+
+.modalOverlay{position:fixed;inset:0;background:rgba(10,26,64,.6);backdrop-filter:blur(4px);z-index:1200;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modalBox{background:#fff;border-radius:20px;padding:32px 28px;max-width:340px;width:100%;text-align:center;position:relative;box-shadow:0 20px 50px rgba(0,0,0,.3);}
+.modalClose{position:absolute;top:14px;right:14px;background:none;border:none;font-size:1.1rem;color:var(--muted);cursor:pointer;}
+.modalIcon{font-size:2.4rem;margin-bottom:6px;}
+.modalBox h3{margin:0 0 6px;color:var(--navy-dark);font-size:1.1rem;}
+.modalSub{color:var(--muted);font-size:.8rem;margin:0 0 18px;}
+.modalBox input{width:100%;padding:11px 14px;border-radius:10px;border:2px solid #d7deee;font-family:inherit;font-size:.95rem;text-align:center;margin-bottom:12px;box-sizing:border-box;}
+.modalSubmit{width:100%;background:var(--navy);color:#fff;border:none;padding:12px;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit;font-size:.9rem;}
+.modalSubmit:hover{background:var(--navy-light);}
+.modalErr{color:var(--danger);font-size:.8rem;font-weight:700;margin:10px 0 0;}
+
+/* ---------- Admin: drawer ---------- */
+.adminDrawer{position:fixed;inset:0;background:rgba(10,26,64,.5);backdrop-filter:blur(3px);z-index:1100;display:flex;justify-content:flex-end;}
+.adminDrawerInner{background:#fff;width:min(460px,100%);height:100%;overflow-y:auto;padding:26px 24px 40px;box-shadow:-10px 0 30px rgba(0,0,0,.25);}
+.adminHead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.adminHead h3{margin:4px 0 0;color:var(--navy-dark);font-size:1.15rem;}
+.adminRoleTag{display:inline-block;background:var(--gold);color:var(--navy-dark);font-weight:800;font-size:.7rem;padding:4px 12px;border-radius:14px;}
+.adminCloseBtn{background:#f0f3fb;border:none;width:32px;height:32px;border-radius:50%;font-size:1rem;cursor:pointer;color:var(--navy-dark);flex-shrink:0;}
+.adminPreviewNote{background:#fff7e0;border:1px solid #f0dca0;color:#7a5b06;font-size:.78rem;line-height:1.7;padding:12px 14px;border-radius:10px;margin-bottom:16px;}
+.adminPreviewNote code{background:rgba(0,0,0,.08);padding:1px 6px;border-radius:5px;}
+.adminBulkRow{display:flex;gap:8px;margin-bottom:16px;}
+.bulkBtn{flex:1;background:#f5f7fc;border:1.5px solid #dfe4f0;color:var(--navy-dark);font-weight:700;font-size:.78rem;padding:9px;border-radius:10px;cursor:pointer;}
+.bulkBtn:hover{background:#e6eaf6;}
+
+.adminRow{border:1px solid #e4e8f3;border-radius:12px;padding:12px 14px;margin-bottom:10px;transition:.2s;}
+.adminRow.closedRow{opacity:.65;background:#fbfbfb;}
+.adminRow .rTop{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.adminRow .rTitle{font-weight:800;font-size:.85rem;color:var(--navy-dark);}
+.adminRow .rChapter{font-size:.68rem;color:var(--muted);font-weight:600;}
+.switch{position:relative;width:44px;height:24px;flex-shrink:0;}
+.switch input{opacity:0;width:0;height:0;position:absolute;}
+.switch .slider{position:absolute;inset:0;background:#d7deee;border-radius:24px;cursor:pointer;transition:.2s;}
+.switch .slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.switch input:checked + .slider{background:var(--success);}
+.switch input:checked + .slider::before{transform:translateX(20px);}
+.adminRow .rExtra{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;}
+.adminRow .rExtra label{font-size:.72rem;font-weight:700;color:var(--navy-dark);display:flex;align-items:center;gap:5px;}
+.adminRow .rExtra input[type=text]{font-family:'Courier New',monospace;font-size:.78rem;padding:6px 9px;border-radius:7px;border:1.5px solid #dfe4f0;width:110px;}
+
+.adminExport{margin-top:20px;border-top:1px dashed #dfe4f0;padding-top:16px;}
+.adminExport h4, .adminStats h4{margin:0 0 8px;font-size:.85rem;color:var(--navy-dark);}
+#exportBox{width:100%;height:130px;font-family:'Courier New',monospace;font-size:.68rem;border-radius:10px;border:2px solid #d7deee;padding:10px;resize:vertical;box-sizing:border-box;color:var(--navy-dark);margin-bottom:8px;}
+.adminStats{margin-top:20px;border-top:1px dashed #dfe4f0;padding-top:16px;}
+#statsText{font-size:.82rem;color:var(--text);margin:0 0 10px;line-height:1.7;}
+.logoutBtn{width:100%;margin-top:22px;background:var(--danger-bg);color:var(--danger);border:1.5px solid #f0b7b0;padding:11px;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit;}
+.logoutBtn:hover{background:#fbdada;}
+@media(max-width:480px){ .adminDrawerInner{width:100%;} }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="heroInner">
+    <div class="heroTop">
+      <img src="eng_ru_logo.png" alt="โลโก้ วิศวกรรมศาสตร์ ม.รามคำแหง" onerror="this.style.display='none'">
+      <div class="org"><b>สาขาวิศวกรรมคอมพิวเตอร์</b>มหาวิทยาลัยรามคำแหง | GNR 1007</div>
+    </div>
+    <div class="heroTitle">
+      <span class="kicker"><span class="dot"></span> INTERACTIVE LAB · เล่นได้จริงในเบราว์เซอร์</span>
+      <h1>ห้องทดลองเสมือนจริง<br><span>พิชิตข้อสอบ กว. Computer Programming</span></h1>
+      <p>รวม 7 สื่อโต้ตอบที่แปลงหัวข้อยากให้กลายเป็นเกม ลองเปลี่ยนค่าตัวแปรจนเกิด Overflow ดูตารางทดค่าโค้ดแบบ step-by-step หรือพาหุ่นยนต์เดินตาม Flowchart ด้วยตัวเอง — ไม่ต้องติดตั้งอะไร กดลิงก์แล้วเล่นได้ทันที</p>
+    </div>
+    <div class="heroStats">
+      <div class="statCard"><div class="num">7</div><div class="lbl">ห้องทดลอง</div></div>
+      <div class="statCard"><div class="num">6</div><div class="lbl">บทสำคัญที่ครอบคลุม</div></div>
+      <div class="statCard"><div class="num">0%</div><div class="lbl">ต้องติดตั้ง</div></div>
+    </div>
+    <div class="progressWrap">
+      <div class="plabel"><span>ความคืบหน้าการสำรวจของคุณ</span><span id="progressText">0 / 7 ห้อง</span></div>
+      <div class="progressBarOuter"><div class="progressBarInner" id="progressBar"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="toolbar">
+    <div class="filterChips" id="filterChips">
+      <button data-f="all" class="active">ทั้งหมด (7)</button>
+      <button data-f="high2">น้ำหนักสูงมาก</button>
+      <button data-f="high">น้ำหนักสูง</button>
+      <button data-f="mid">น้ำหนักกลาง</button>
+    </div>
+    <button class="randomBtn" id="btnRandom">🎲 สุ่มห้องทดลอง</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="howto">
+    <h2>วิธีใช้งาน</h2>
+    <ol>
+      <li><b>สำหรับผู้สอน:</b> เปิดไฟล์ที่ต้องการฉายบนโปรเจกเตอร์ระหว่างสอนได้ทุกช่วง — ทุกห้องมีปุ่มโต้ตอบ ให้นักศึกษาช่วยตอบหน้าชั้นได้เลย</li>
+      <li><b>สำหรับนักศึกษา:</b> เปิดทบทวนด้วยตนเองก่อนสอบ แต่ละห้องมีแบบทดสอบท้ายบทพร้อมเฉลยทันที</li>
+      <li><b>ออฟไลน์ได้:</b> ทุกไฟล์ทำงานได้โดยไม่ต้องต่ออินเทอร์เน็ต (ฟอนต์จะสลับเป็นฟอนต์ไทยของระบบโดยอัตโนมัติ)</li>
+      <li><b>ความคืบหน้า:</b> ระบบจะจำห้องที่เคยเข้าชมไว้ในเบราว์เซอร์นี้ (ไม่มีการเก็บข้อมูลขึ้นเซิร์ฟเวอร์)</li>
+      <li><b>สำหรับผู้ดูแล:</b> กดไอคอนฟันเฟือง ⚙️ มุมขวาล่างของหน้าจอเพื่อเข้าสู่ระบบผู้ดูแล สามารถเปิด/ปิด/ล็อกห้องทดลองได้จากที่นี่</li>
+    </ol>
+  </div>
+
+  <footer>
+    พัฒนาโดย <b>ผศ.ดร.กุลวลัญช์ วรุณสิน</b> | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง<br>
+    เตรียมสอบใบอนุญาตภาคีวิศวกร (กว.) วิชา Computer Programming | GNR 1007
+  </footer>
+
+</div>
+
+<button id="adminGearBtn" class="adminGearBtn" title="ผู้ดูแลระบบ">⚙️</button>
+
+<div id="loginModal" class="modalOverlay" style="display:none">
+  <div class="modalBox">
+    <button class="modalClose" id="loginModalClose">✕</button>
+    <div class="modalIcon">🔐</div>
+    <h3>เข้าสู่ระบบผู้ดูแล</h3>
+    <p class="modalSub">สำหรับผู้สอนเท่านั้น — ใช้จัดการเปิด/ปิดห้องทดลอง</p>
+    <input type="password" id="loginPassInput" placeholder="รหัสผ่าน" autocomplete="off">
+    <button class="modalSubmit" id="loginSubmitBtn">เข้าสู่ระบบ</button>
+    <p class="modalErr" id="loginErr" style="display:none">รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่</p>
+  </div>
+</div>
+
+<div id="adminDrawer" class="adminDrawer" style="display:none">
+  <div class="adminDrawerInner">
+    <div class="adminHead">
+      <div>
+        <div class="adminRoleTag" id="adminRoleTag">ผู้ดูแลระบบ</div>
+        <h3>แผงควบคุมห้องทดลอง</h3>
+      </div>
+      <button id="adminCloseBtn" class="adminCloseBtn">✕</button>
+    </div>
+    <div class="adminPreviewNote">👁️ <b>โหมดพรีวิว:</b> การเปลี่ยนแปลงที่นี่จะแสดงผลทันทีเฉพาะเบราว์เซอร์นี้เท่านั้น เพื่อให้มีผลกับผู้เข้าชม<b>ทุกคน</b> ต้องกด "คัดลอกโค้ด" ด้านล่าง แล้วนำไปแทนที่ในไฟล์ <code>labs-config.js</code> จากนั้น commit + push ขึ้น GitHub</div>
+
+    <div class="adminBulkRow" id="adminBulkRow">
+      <button class="bulkBtn" id="bulkOpenAll">✅ เปิดทุกห้อง</button>
+      <button class="bulkBtn" id="bulkCloseAll">🚧 ปิดทุกห้อง</button>
+    </div>
+
+    <div class="adminTable" id="adminTable"></div>
+
+    <div class="adminExport" id="adminExportSection">
+      <h4>📋 คัดลอกโค้ดไปอัปเดต labs-config.js</h4>
+      <textarea id="exportBox" readonly spellcheck="false"></textarea>
+      <button class="modalSubmit" id="copyExportBtn">📋 คัดลอกโค้ดทั้งหมด</button>
+    </div>
+
+    <div class="adminStats" id="adminStatsSection">
+      <h4>📊 สถิติการเข้าชม (เบราว์เซอร์นี้เท่านั้น)</h4>
+      <p id="statsText"></p>
+      <button class="bulkBtn" id="resetStatsBtn">ล้างสถิติการเข้าชมของเบราว์เซอร์นี้</button>
+    </div>
+
+    <button class="logoutBtn" id="logoutBtn">ออกจากระบบผู้ดูแล</button>
+  </div>
+</div>
+
+<script src="labs-config.js"></script>
+<script>
+const LABS = [
+  {
+    file:'sim_memory_speed.html', chapter:'บทที่ 1', session:'ช่วงที่ 1',
+    icon:'🏎️', title:'แข่งความเร็วหน่วยความจำ',
+    desc:'ดูภาพเคลื่อนไหวการแข่งขันความเร็ว Register vs Cache vs RAM vs HDD แบบเห็นภาพจริง พร้อมตารางเปรียบเทียบความจุ-ราคา',
+    weight:'high', weightLabel:'น้ำหนักสูง'
+  },
+  {
+    file:'sim_overflow.html', chapter:'บทที่ 3', session:'ช่วงที่ 2',
+    icon:'🔢', title:'จำลอง Overflow ของตัวแปร',
+    desc:'ลองเพิ่มค่า signed/unsigned char ไปเรื่อยๆ จนวนกลับ (Overflow) ดูบิตจริงระดับ 8 บิตแบบเรียลไทม์',
+    weight:'high', weightLabel:'น้ำหนักสูง'
+  },
+  {
+    file:'sim_precedence.html', chapter:'บทที่ 4', session:'ช่วงที่ 3',
+    icon:'🧮', title:'ลำดับการคำนวณ (Precedence)',
+    desc:'พิมพ์นิพจน์ C ของคุณเอง แล้วดูลำดับการคำนวณจริงทีละขั้น พร้อมไฮไลต์ว่าเครื่องหมายใดทำงานก่อน-หลัง',
+    weight:'high', weightLabel:'น้ำหนักสูง'
+  },
+  {
+    file:'sim_trace.html', chapter:'บทที่ 5', session:'ช่วงที่ 4-6',
+    icon:'🔍', title:'ตารางทดค่า (Code Tracing)',
+    desc:'วางโค้ด C ของคุณเอง (if/for/while/printf) แล้วกด Step ทีละบรรทัด ระบบสร้างตารางทดค่าให้อัตโนมัติ',
+    weight:'high2', weightLabel:'น้ำหนักสูงมาก'
+  },
+  {
+    file:'sim_array_train.html', chapter:'บทที่ 7', session:'ช่วงที่ 7',
+    icon:'🚂', title:'ขบวนรถไฟอาร์เรย์',
+    desc:'อาร์เรย์คือขบวนรถไฟที่ index เริ่มที่ 0 เสมอ — ลองเข้าถึง index เกินขอบเขตดูว่าเกิด Out of Bounds อย่างไร',
+    weight:'mid', weightLabel:'น้ำหนักกลาง'
+  },
+  {
+    file:'sim_flowchart.html', chapter:'บทที่ 10', session:'ช่วงที่ 10',
+    icon:'🤖', title:'Flowchart พาหุ่นยนต์กลับบ้าน',
+    desc:'ลาก/คลิกบล็อก Process และ Decision ประกอบเป็นโปรแกรม แล้วรันหุ่นยนต์เดินตามผังจริงบนกริด',
+    weight:'high', weightLabel:'น้ำหนักสูง'
+  },
+  {
+    file:'sim_sort.html', chapter:'บทที่ 11', session:'ช่วงที่ 13',
+    icon:'🥞', title:'Bubble Sort & Stack/Queue',
+    desc:'ดู Bubble Sort เรียงแพนเค้กทีละขั้นพร้อม pseudocode ไฮไลต์ และทดลอง Stack (LIFO) กับ Queue (FIFO) ด้วยตนเอง',
+    weight:'mid', weightLabel:'น้ำหนักกลาง'
+  }
+];
+
+/* ================= Admin / access-control config ================= */
+// รหัสผ่านผู้ดูแล — แก้ไขได้ตรงนี้โดยตรง (จำไว้ว่ารหัสจะมองเห็นได้ผ่าน view-source เพราะเป็น static site)
+const ADMIN_PASSWORD = 'ru2569';       // สิทธิ์เต็ม: เปิด/ปิด, ล็อกรหัส, ตั้งราคา, ดูสถิติ, export
+const COADMIN_PASSWORD = 'pichai2569'; // สิทธิ์ อ.พิชัย: เปิด/ปิดห้องทดลองได้อย่างเดียว
+
+const ROLE_KEY = 'gnr1007_admin_role_v1';
+const UNLOCK_KEY = 'gnr1007_unlocked_v1';
+function getRole(){ return sessionStorage.getItem(ROLE_KEY) || null; }
+function setRole(r){ sessionStorage.setItem(ROLE_KEY, r); }
+function clearRole(){ sessionStorage.removeItem(ROLE_KEY); }
+function getUnlockedLabs(){ try{ return JSON.parse(localStorage.getItem(UNLOCK_KEY) || '[]'); }catch(e){ return []; } }
+function unlockLab(file){
+  const u = getUnlockedLabs();
+  if(!u.includes(file)){ u.push(file); localStorage.setItem(UNLOCK_KEY, JSON.stringify(u)); }
+}
+function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+
+const deployedConfig = (window.LAB_CONFIG && window.LAB_CONFIG.labs) ? window.LAB_CONFIG : { labs:{} };
+let previewConfig = deepClone(deployedConfig);
+let currentFilter = 'all';
+// เผื่อกรณี labs-config.js โหลดไม่สำเร็จหรือขาดคีย์บางห้อง — ใช้ค่าเริ่มต้นเปิดฟรีเสมอ (fail-open)
+LABS.forEach(l=>{
+  if(!previewConfig.labs) previewConfig.labs = {};
+  if(!previewConfig.labs[l.file]) previewConfig.labs[l.file] = { open:true, locked:false, code:'', price:'ฟรี' };
+});
+
+const STORAGE_KEY = 'gnr1007_lab_visited_v1';
+function getVisited(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }catch(e){ return []; }
+}
+function markVisited(file){
+  const v = getVisited();
+  if(!v.includes(file)){ v.push(file); localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); }
+  updateProgress();
+}
+function updateProgress(){
+  const v = getVisited();
+  const pct = Math.round((v.length / LABS.length) * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${v.length} / ${LABS.length} ห้อง`;
+  document.querySelectorAll('.labCard').forEach(card=>{
+    const f = card.dataset.file;
+    card.classList.toggle('visited', v.includes(f));
+  });
+}
+
+const grid = document.getElementById('grid');
+function renderGrid(filter){
+  currentFilter = filter || 'all';
+  grid.innerHTML = '';
+  const visited = getVisited();
+  const unlocked = getUnlockedLabs();
+  LABS.forEach((lab, i)=>{
+    if(currentFilter!=='all' && lab.weight !== currentFilter) return;
+    const cfg = previewConfig.labs[lab.file] || {open:true, locked:false, code:'', price:'ฟรี'};
+    const isUnlocked = unlocked.includes(lab.file);
+    const card = document.createElement('div');
+    let cls = 'labCard';
+    if(visited.includes(lab.file)) cls += ' visited';
+    if(!cfg.open) cls += ' closedCard';
+    card.className = cls;
+    card.dataset.file = lab.file;
+    card.style.animationDelay = (i*0.08)+'s';
+
+    const priceLabel = cfg.price || 'ฟรี';
+    const priceTagHtml = `<span class="tag priceTag ${priceLabel!=='ฟรี' ? 'paid':''}">${priceLabel}</span>`;
+    const showLockBox = cfg.open && cfg.locked && !isUnlocked;
+
+    let actionHtml;
+    if(!cfg.open){
+      actionHtml = `<span class="btnGo" style="background:var(--muted);cursor:not-allowed;opacity:.85">🚧 ปิดให้บริการชั่วคราว</span>`;
+    } else if(showLockBox){
+      actionHtml = `<span class="btnGo" style="background:#c9a227;cursor:default">🔒 กรอกรหัสด้านบนเพื่อเข้าใช้งาน</span>`;
+    } else {
+      actionHtml = `<a class="btnGo" href="${lab.file}" target="_blank" rel="noopener">เข้าห้องทดลอง →</a>`;
+    }
+
+    card.innerHTML = `
+      <div class="top">
+        <span class="visited">✔ เข้าชมแล้ว</span>
+        ${!cfg.open ? '<span class="closedBanner">ปิดให้บริการ</span>' : ''}
+        <div class="chapterTag">${lab.chapter} · สอน${lab.session}</div>
+        <div class="icon">${lab.icon}</div>
+        <h3 class="title">${lab.title}</h3>
+      </div>
+      <div class="body">
+        <div class="desc">${lab.desc}</div>
+        <div class="labTags">
+          <span class="tag weight-${lab.weight}">${lab.weightLabel}</span>
+          ${priceTagHtml}
+          ${cfg.locked && isUnlocked ? '<span class="tag unlockedTag">🔓 ปลดล็อกแล้ว</span>' : ''}
+        </div>
+        ${showLockBox ? `
+        <div class="lockBox">
+          <p>🔒 ห้องนี้ต้องใช้รหัสเข้าใช้งาน (${priceLabel})</p>
+          <div class="lockRow">
+            <input type="text" class="unlockInput" placeholder="กรอกรหัส" autocomplete="off">
+            <button class="unlockBtn">ปลดล็อก</button>
+          </div>
+        </div>` : ''}
+        <div class="actions">
+          ${actionHtml}
+          <button class="btnCopy" title="คัดลอกลิงก์" data-file="${lab.file}">🔗</button>
+        </div>
+      </div>
+    `;
+
+    if(cfg.open && (!cfg.locked || isUnlocked)){
+      card.querySelector('.btnGo').addEventListener('click', ()=> markVisited(lab.file));
+    }
+    if(showLockBox){
+      const input = card.querySelector('.unlockInput');
+      const unlockBtn = card.querySelector('.unlockBtn');
+      const tryUnlock = ()=>{
+        const v = input.value.trim();
+        if(v && cfg.code && v.toLowerCase() === String(cfg.code).toLowerCase()){
+          unlockLab(lab.file);
+          renderGrid(currentFilter);
+        } else {
+          input.style.borderColor = 'var(--danger)';
+          input.value='';
+          input.placeholder = 'รหัสไม่ถูกต้อง ลองใหม่';
+        }
+      };
+      unlockBtn.addEventListener('click', tryUnlock);
+      input.addEventListener('keydown', e=>{ if(e.key==='Enter') tryUnlock(); });
+    }
+    card.querySelector('.btnCopy').addEventListener('click', (e)=>{
+      const btn = e.currentTarget;
+      const url = new URL(lab.file, window.location.href).href;
+      const done = ()=>{
+        btn.classList.add('copied'); btn.textContent = '✓';
+        setTimeout(()=>{ btn.classList.remove('copied'); btn.textContent = '🔗'; }, 1500);
+      };
+      if(navigator.clipboard && window.isSecureContext){
+        navigator.clipboard.writeText(url).then(done).catch(()=>prompt('คัดลอกลิงก์นี้:', url));
+      } else {
+        prompt('คัดลอกลิงก์นี้:', url);
+      }
+    });
+    grid.appendChild(card);
+  });
+}
+renderGrid('all');
+updateProgress();
+
+document.getElementById('filterChips').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  document.querySelectorAll('#filterChips button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid(btn.dataset.f);
+});
+
+document.getElementById('btnRandom').addEventListener('click', ()=>{
+  const openLabs = LABS.filter(l => previewConfig.labs[l.file].open);
+  const pool = openLabs.length ? openLabs : LABS;
+  const pick = pool[Math.floor(Math.random()*pool.length)];
+  markVisited(pick.file);
+  window.open(pick.file, '_blank', 'noopener');
+});
+
+/* ================= Admin panel wiring ================= */
+const gearBtn = document.getElementById('adminGearBtn');
+const loginModal = document.getElementById('loginModal');
+const adminDrawer = document.getElementById('adminDrawer');
+
+function refreshGearState(){
+  gearBtn.classList.toggle('loggedIn', !!getRole());
+}
+function openLoginModal(){
+  loginModal.style.display='flex';
+  document.getElementById('loginErr').style.display='none';
+  document.getElementById('loginPassInput').value='';
+  document.getElementById('loginPassInput').focus();
+}
+function closeLoginModal(){ loginModal.style.display='none'; }
+function doLogin(){
+  const v = document.getElementById('loginPassInput').value;
+  if(v === ADMIN_PASSWORD){ setRole('admin'); closeLoginModal(); openAdminDrawer(); }
+  else if(v === COADMIN_PASSWORD){ setRole('copilot'); closeLoginModal(); openAdminDrawer(); }
+  else { document.getElementById('loginErr').style.display='block'; }
+}
+function openAdminDrawer(){
+  refreshGearState();
+  renderAdminTable();
+  adminDrawer.style.display='flex';
+}
+function closeAdminDrawer(){ adminDrawer.style.display='none'; }
+
+gearBtn.addEventListener('click', ()=>{ getRole() ? openAdminDrawer() : openLoginModal(); });
+document.getElementById('loginModalClose').addEventListener('click', closeLoginModal);
+loginModal.addEventListener('click', (e)=>{ if(e.target===loginModal) closeLoginModal(); });
+document.getElementById('loginSubmitBtn').addEventListener('click', doLogin);
+document.getElementById('loginPassInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('adminCloseBtn').addEventListener('click', closeAdminDrawer);
+adminDrawer.addEventListener('click', (e)=>{ if(e.target===adminDrawer) closeAdminDrawer(); });
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  clearRole();
+  closeAdminDrawer();
+  refreshGearState();
+});
+document.getElementById('bulkOpenAll').addEventListener('click', ()=>{
+  LABS.forEach(l=> previewConfig.labs[l.file].open = true);
+  renderAdminTable(); renderGrid(currentFilter);
+});
+document.getElementById('bulkCloseAll').addEventListener('click', ()=>{
+  LABS.forEach(l=> previewConfig.labs[l.file].open = false);
+  renderAdminTable(); renderGrid(currentFilter);
+});
+document.getElementById('resetStatsBtn').addEventListener('click', ()=>{
+  if(confirm('ล้างสถิติการเข้าชมของเบราว์เซอร์นี้?')){
+    localStorage.removeItem(STORAGE_KEY);
+    updateProgress();
+    refreshStats();
+  }
+});
+document.getElementById('copyExportBtn').addEventListener('click', ()=>{
+  const box = document.getElementById('exportBox');
+  const btn = document.getElementById('copyExportBtn');
+  const done = ()=>{ btn.textContent='✓ คัดลอกแล้ว'; setTimeout(()=>btn.textContent='📋 คัดลอกโค้ดทั้งหมด', 1600); };
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(box.value).then(done).catch(()=>{ box.focus(); box.select(); done(); });
+  } else {
+    box.focus(); box.select();
+    try{ document.execCommand('copy'); done(); }catch(e){ /* ผู้ใช้คัดลอกเองจากกล่องข้อความได้ */ }
+  }
+});
+
+function generateConfigCode(cfg){
+  const lines = LABS.map(lab=>{
+    const c = cfg.labs[lab.file];
+    return `    '${lab.file}': { open: ${!!c.open}, locked: ${!!c.locked}, code: ${JSON.stringify(c.code||'')}, price: ${JSON.stringify(c.price||'ฟรี')} },`;
+  }).join('\n');
+  return `window.LAB_CONFIG = {\n  version: 1,\n  updatedNote: 'อัปเดตผ่านแผงควบคุมผู้ดูแล เมื่อ ${new Date().toLocaleString('th-TH')}',\n  labs: {\n${lines}\n  }\n};`;
+}
+function refreshExportBox(){
+  const box = document.getElementById('exportBox');
+  if(box) box.value = generateConfigCode(previewConfig);
+}
+function refreshStats(){
+  const el = document.getElementById('statsText');
+  if(!el) return;
+  const v = getVisited();
+  const openCount = LABS.filter(l=>previewConfig.labs[l.file].open).length;
+  el.textContent = `เข้าชมแล้ว ${v.length}/${LABS.length} ห้อง (สะสมของเบราว์เซอร์นี้) | ขณะนี้เปิดใช้งานอยู่ ${openCount}/${LABS.length} ห้อง (ตามพรีวิวปัจจุบัน)`;
+}
+
+function renderAdminTable(){
+  const role = getRole();
+  const tableEl = document.getElementById('adminTable');
+  const exportSection = document.getElementById('adminExportSection');
+  const statsSection = document.getElementById('adminStatsSection');
+  const roleTag = document.getElementById('adminRoleTag');
+
+  if(role === 'admin'){
+    roleTag.textContent = 'ผู้ดูแลระบบ (สิทธิ์เต็ม)';
+    statsSection.style.display='block';
+  } else {
+    roleTag.textContent = 'ผู้ช่วยสอน (อ.พิชัย) — เปิด/ปิดห้องได้อย่างเดียว';
+    statsSection.style.display='none';
+  }
+  exportSection.style.display='block';
+
+  tableEl.innerHTML = '';
+  LABS.forEach(lab=>{
+    const cfg = previewConfig.labs[lab.file];
+    const row = document.createElement('div');
+    row.className = 'adminRow' + (!cfg.open ? ' closedRow' : '');
+    row.innerHTML = `
+      <div class="rTop">
+        <div>
+          <div class="rTitle">${lab.icon} ${lab.title}</div>
+          <div class="rChapter">${lab.chapter} · ${lab.file}</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" class="openToggle" ${cfg.open ? 'checked' : ''}>
+          <span class="slider"></span>
+        </label>
+      </div>
+      ${role==='admin' ? `
+      <div class="rExtra">
+        <label><input type="checkbox" class="lockToggle" ${cfg.locked?'checked':''}> ล็อกด้วยรหัส</label>
+        <input type="text" class="codeInput" placeholder="รหัสปลดล็อก" value="${cfg.code||''}">
+        <input type="text" class="priceInput" placeholder="ป้ายราคา" value="${cfg.price||''}">
+      </div>` : ''}
+    `;
+    row.querySelector('.openToggle').addEventListener('change', (e)=>{
+      previewConfig.labs[lab.file].open = e.target.checked;
+      row.classList.toggle('closedRow', !e.target.checked);
+      refreshExportBox(); refreshStats();
+      renderGrid(currentFilter);
+    });
+    if(role==='admin'){
+      row.querySelector('.lockToggle').addEventListener('change', (e)=>{
+        previewConfig.labs[lab.file].locked = e.target.checked;
+        refreshExportBox();
+        renderGrid(currentFilter);
+      });
+      row.querySelector('.codeInput').addEventListener('input', (e)=>{
+        previewConfig.labs[lab.file].code = e.target.value;
+        refreshExportBox();
+      });
+      row.querySelector('.priceInput').addEventListener('input', (e)=>{
+        previewConfig.labs[lab.file].price = e.target.value;
+        refreshExportBox();
+        renderGrid(currentFilter);
+      });
+    }
+    tableEl.appendChild(row);
+  });
+
+  refreshExportBox();
+  refreshStats();
+}
+
+refreshGearState();
+</script>
+</body>
+</html>

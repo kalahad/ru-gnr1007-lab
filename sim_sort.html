@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 11: Bubble Sort & Stack/Queue | GNR 1007</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#16306C; --navy-dark:#0d1f4d; --navy-light:#24408a;
+  --gold:#C9A227; --gold-light:#e8cf6f;
+  --bg:#eef1f8; --card:#ffffff;
+  --danger:#c0392b; --danger-bg:#fdeaea;
+  --success:#1e8449; --success-bg:#eafaf1;
+  --text:#1c2333; --muted:#657085; --radius:16px;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Noto Sans Thai','Sarabun',sans-serif;background:linear-gradient(180deg,#eef1f8,#f8f9fd 400px);color:var(--text);}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px 60px;}
+header.top{background:linear-gradient(120deg,var(--navy-dark),var(--navy));color:#fff;padding:22px 20px;display:flex;align-items:center;gap:18px;box-shadow:0 4px 18px rgba(22,48,108,.25);}
+header.top img{height:56px;width:auto;border-radius:8px;background:#fff;padding:4px;}
+header.top .ttl{flex:1;}
+header.top h1{margin:0;font-size:1.35rem;font-weight:800;}
+header.top p{margin:4px 0 0;font-size:.85rem;opacity:.85;font-weight:500;}
+.badge{display:inline-block;background:var(--gold);color:var(--navy-dark);font-weight:700;font-size:.75rem;padding:3px 12px;border-radius:20px;margin-bottom:6px;}
+.card{background:var(--card);border-radius:var(--radius);padding:22px 24px;margin-top:22px;box-shadow:0 2px 14px rgba(22,48,108,.08);border:1px solid #e4e8f3;}
+.card h2{margin:0 0 10px;color:var(--navy);font-size:1.15rem;border-left:6px solid var(--gold);padding-left:12px;}
+.intro{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;}
+.intro p{flex:1;min-width:260px;line-height:1.85;margin:0;}
+.chip{background:#eef1f8;border-radius:10px;padding:10px 14px;font-size:.85rem;color:var(--navy-dark);font-weight:600;min-width:150px;text-align:center;}
+.chip b{display:block;font-size:1.05rem;color:var(--navy);}
+
+.setupRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+.setupRow input[type=text]{font-family:'Courier New',monospace;font-size:.95rem;padding:9px 12px;border-radius:8px;border:2px solid #d7deee;width:220px;}
+button.primary{background:var(--navy);color:#fff;border:none;padding:10px 22px;border-radius:10px;font-family:inherit;font-weight:700;font-size:.88rem;cursor:pointer;}
+button.primary:hover{background:var(--navy-light);}
+button.secondary{background:#fff;color:var(--navy);border:2px solid var(--navy);padding:9px 18px;border-radius:10px;font-family:inherit;font-weight:700;font-size:.83rem;cursor:pointer;}
+button.secondary:hover{background:#eef1f8;}
+button.secondary:disabled{opacity:.35;cursor:not-allowed;}
+
+.sortGrid{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;}
+.barsHost{display:flex;align-items:flex-end;gap:10px;height:210px;padding:10px 10px 0;border-bottom:3px solid var(--navy-dark);}
+.barCol{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;flex:1;height:100%;}
+.barCol .pancake{font-size:1.1rem;}
+.bar{width:100%;max-width:52px;background:linear-gradient(180deg,var(--navy-light),var(--navy));border-radius:6px 6px 0 0;display:flex;align-items:flex-start;justify-content:center;color:#fff;font-weight:800;font-size:.85rem;padding-top:4px;transition:height .35s, background .2s;}
+.bar.compare{background:linear-gradient(180deg,var(--gold-light),var(--gold));color:var(--navy-dark);}
+.bar.swap{background:linear-gradient(180deg,#e57373,var(--danger));}
+.bar.sorted{background:linear-gradient(180deg,#6fcf97,var(--success));}
+
+.pseudo{background:#0d1f4d;color:#dbe3f5;font-family:'Courier New',monospace;font-size:.85rem;border-radius:10px;padding:12px 16px;margin-top:16px;line-height:1.9;}
+.pseudo .pl{padding:2px 8px;border-radius:4px;white-space:pre;}
+.pseudo .pl.active{background:var(--gold);color:var(--navy-dark);font-weight:700;}
+
+.statsRow{display:flex;gap:14px;margin-top:12px;flex-wrap:wrap;}
+.statChip{background:#f0f3fb;border-radius:10px;padding:8px 16px;font-size:.82rem;font-weight:700;color:var(--navy-dark);}
+.statChip b{color:var(--navy);}
+
+.navRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center;}
+input[type=range]{accent-color:var(--navy);}
+
+.stackQueueGrid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:6px;}
+.sqBox{border:1px solid #e4e8f3;border-radius:12px;padding:16px;}
+.sqBox h3{margin:0 0 10px;color:var(--navy-dark);font-size:.95rem;}
+.sqControls{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.sqControls input{width:80px;font-family:'Courier New',monospace;padding:8px 10px;border-radius:8px;border:2px solid #d7deee;}
+.stackVisual{display:flex;flex-direction:column-reverse;gap:6px;min-height:220px;align-items:center;justify-content:flex-start;padding:8px;border:2px dashed #d7deee;border-radius:10px;}
+.plate{background:linear-gradient(90deg,var(--gold-light),var(--gold));color:var(--navy-dark);font-weight:800;border-radius:20px;padding:8px 0;width:80%;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,.15);}
+.plate.top{outline:3px solid var(--navy);}
+.queueVisual{display:flex;gap:8px;min-height:80px;padding:12px;border:2px dashed #d7deee;border-radius:10px;overflow-x:auto;align-items:center;}
+.qitem{background:linear-gradient(180deg,var(--navy-light),var(--navy));color:#fff;font-weight:800;border-radius:10px;padding:14px 16px;flex-shrink:0;position:relative;}
+.qitem.front::before{content:'FRONT ▼';position:absolute;top:-22px;left:0;font-size:.62rem;color:var(--success);font-weight:800;}
+.qitem.rear::after{content:'▲ REAR';position:absolute;bottom:-22px;left:0;font-size:.62rem;color:var(--danger);font-weight:800;}
+.emptyNote{color:var(--muted);font-size:.82rem;text-align:center;padding:20px 0;}
+
+.trap{background:var(--danger-bg);border:1.5px solid #f0b7b0;border-left:6px solid var(--danger);border-radius:12px;padding:14px 18px;margin-top:16px;}
+.trap b{color:var(--danger);}
+
+.quiz-item{border:1px solid #e4e8f3;border-radius:12px;padding:14px 16px;margin-bottom:14px;}
+.quiz-item p.q{font-weight:700;margin:0 0 10px;color:var(--navy-dark);}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.opts button{text-align:left;background:#f7f8fc;border:1.5px solid #dfe4f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:.87rem;cursor:pointer;color:var(--text);}
+.opts button:hover{border-color:var(--navy-light);}
+.opts button.correct{background:var(--success-bg);border-color:var(--success);color:var(--success);font-weight:700;}
+.opts button.wrong{background:var(--danger-bg);border-color:var(--danger);color:var(--danger);font-weight:700;}
+.fb{margin-top:8px;font-size:.85rem;font-weight:600;display:none;}
+
+.backHome{position:fixed;top:16px;right:16px;z-index:998;background:rgba(10,26,64,.9);color:#fff;text-decoration:none;font-weight:700;font-size:.8rem;padding:9px 18px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px);transition:.2s;}
+.backHome:hover{background:var(--gold);color:var(--navy-dark);}
+.labGate{position:fixed;inset:0;background:linear-gradient(135deg,rgba(10,26,64,.97),rgba(22,48,108,.97));z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+.labGateBox{background:#fff;border-radius:20px;padding:34px 30px;max-width:380px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.4);}
+.labGateIcon{font-size:3rem;margin-bottom:10px;}
+.labGateBox h2{color:var(--navy-dark);font-size:1.15rem;margin:0 0 10px;}
+.labGateBox p{color:var(--muted);font-size:.88rem;line-height:1.7;margin:0 0 16px;}
+#labGateCodeBox input{width:100%;padding:10px 14px;border-radius:10px;border:2px solid #d7deee;font-family:'Courier New',monospace;font-size:.95rem;text-align:center;margin-bottom:10px;box-sizing:border-box;}
+#labGateCodeBox button{width:100%;background:var(--navy);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit;}
+#labGateCodeBox button:hover{background:var(--navy-light);}
+.labGateBack{display:inline-block;margin-top:16px;color:var(--navy);font-weight:700;font-size:.82rem;text-decoration:none;}
+.labGateBack:hover{text-decoration:underline;}
+footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;line-height:1.8;}
+@media(max-width:900px){ .sortGrid{grid-template-columns:1fr;} .stackQueueGrid{grid-template-columns:1fr;} .opts{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<a href="index.html" class="backHome" title="กลับหน้ารวมห้องทดลอง">← กลับหน้ารวม</a>
+<div id="labGate" class="labGate" style="display:none">
+  <div class="labGateBox">
+    <div class="labGateIcon" id="labGateIcon">🔒</div>
+    <h2 id="labGateTitle">ห้องนี้ปิดให้บริการชั่วคราว</h2>
+    <p id="labGateMsg">ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว</p>
+    <div id="labGateCodeBox" style="display:none">
+      <input type="text" id="labGateCodeInput" placeholder="กรอกรหัสเข้าใช้งาน" autocomplete="off">
+      <button id="labGateUnlockBtn">ปลดล็อก</button>
+      <p id="labGateCodeErr" style="display:none;color:#c0392b;font-size:.78rem;margin-top:8px;font-weight:700">รหัสไม่ถูกต้อง ลองใหม่อีกครั้ง</p>
+    </div>
+    <a href="index.html" class="labGateBack">← กลับหน้ารวมห้องทดลอง</a>
+  </div>
+</div>
+<script src="labs-config.js"></script>
+<script>
+(function(){
+  var FILE = 'sim_sort.html';
+  function getCfg(){
+    try{ return (window.LAB_CONFIG && window.LAB_CONFIG.labs && window.LAB_CONFIG.labs[FILE]) || {open:true, locked:false}; }catch(e){ return {open:true, locked:false}; }
+  }
+  function getUnlocked(){ try{ return JSON.parse(localStorage.getItem('gnr1007_unlocked_v1')||'[]'); }catch(e){ return []; } }
+  function unlock(){ try{ var u=getUnlocked(); if(u.indexOf(FILE)===-1){ u.push(FILE); localStorage.setItem('gnr1007_unlocked_v1', JSON.stringify(u)); } }catch(e){} }
+  var cfg = getCfg();
+  var gate = document.getElementById('labGate');
+  if(!cfg.open){
+    gate.style.display='flex';
+    document.getElementById('labGateIcon').textContent='🚧';
+    document.getElementById('labGateTitle').textContent='ห้องนี้ปิดให้บริการชั่วคราว';
+    document.getElementById('labGateMsg').textContent='ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว กรุณาติดต่อผู้สอน หรือกลับไปเลือกห้องอื่น';
+  } else if(cfg.locked && getUnlocked().indexOf(FILE)===-1){
+    gate.style.display='flex';
+    document.getElementById('labGateIcon').textContent='🔒';
+    document.getElementById('labGateTitle').textContent='ห้องทดลองนี้ต้องใช้รหัสเข้าใช้งาน';
+    document.getElementById('labGateMsg').textContent = cfg.price ? ('ระดับการเข้าถึง: '+cfg.price+' — กรอกรหัสที่ได้รับจากผู้สอน') : 'กรอกรหัสที่ได้รับจากผู้สอนเพื่อเข้าใช้งาน';
+    document.getElementById('labGateCodeBox').style.display='block';
+    document.getElementById('labGateUnlockBtn').addEventListener('click', function(){
+      var v = document.getElementById('labGateCodeInput').value.trim();
+      if(v && cfg.code && v.toLowerCase() === String(cfg.code).toLowerCase()){
+        unlock();
+        gate.style.display='none';
+      } else {
+        document.getElementById('labGateCodeErr').style.display='block';
+      }
+    });
+    document.getElementById('labGateCodeInput').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('labGateUnlockBtn').click(); });
+  }
+})();
+</script>
+<header class="top">
+  <img src="eng_ru_logo.png" alt="โลโก้ วิศวกรรมศาสตร์ ม.รามคำแหง" onerror="this.style.display='none'">
+  <div class="ttl">
+    <h1>สื่อโต้ตอบ บทที่ 11 — Bubble Sort และ Stack/Queue</h1>
+    <p>GNR 1007 เตรียมสอบ กว. Computer Programming | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <span class="badge">ทำไมบทนี้สำคัญ</span>
+    <div class="intro">
+      <p>Data Structure พื้นฐาน 3 ตัวที่ออกสอบบ่อย: <b>Bubble Sort</b> (อัลกอริทึมเรียงลำดับที่เข้าใจง่ายที่สุด), <b>Stack</b> (LIFO เข้าหลังออกก่อน) และ <b>Queue</b> (FIFO เข้าก่อนออกก่อน) ลองกดทีละขั้นเพื่อดูการทำงานจริง</p>
+      <div class="chip">น้ำหนักข้อสอบ<b>กลาง</b></div>
+      <div class="chip">สอนช่วงที่<b>13</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Bubble Sort — เรียงแพนเค้ก</h2>
+    <div class="setupRow">
+      <input type="text" id="arrInput" value="5,2,8,1,9,3">
+      <button class="primary" id="btnBuildSort">สร้างชุดข้อมูล</button>
+    </div>
+    <div class="sortGrid">
+      <div>
+        <div class="barsHost" id="barsHost"></div>
+        <div class="navRow">
+          <button class="secondary" id="btnStepSort">▶ ทีละขั้น</button>
+          <button class="secondary" id="btnAutoSort">▶▶ เล่นอัตโนมัติ</button>
+          <button class="secondary" id="btnResetSort">↺ รีเซ็ต</button>
+          <label style="font-size:.8rem;font-weight:700;color:var(--navy-dark)">ความเร็ว:</label>
+          <input type="range" id="speedSort" min="200" max="1500" value="600">
+        </div>
+        <div class="statsRow">
+          <div class="statChip">เปรียบเทียบ: <b id="statCompare">0</b></div>
+          <div class="statChip">สลับ: <b id="statSwap">0</b></div>
+          <div class="statChip">รอบ (pass): <b id="statPass">0</b></div>
+          <div class="statChip" id="statDone" style="display:none;color:var(--success)">✔ เรียงเสร็จแล้ว!</div>
+        </div>
+      </div>
+      <div>
+        <div class="pseudo" id="pseudoBox">
+          <div class="pl" id="pl1">for i = 0 ถึง n-2</div>
+          <div class="pl" id="pl2">&nbsp;&nbsp;for j = 0 ถึง n-2-i</div>
+          <div class="pl" id="pl3">&nbsp;&nbsp;&nbsp;&nbsp;if arr[j] &gt; arr[j+1]</div>
+          <div class="pl" id="pl4">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;สลับ arr[j] กับ arr[j+1]</div>
+        </div>
+        <div class="statChip" id="stepNote" style="display:block;margin-top:12px;min-height:20px">กด "ทีละขั้น" เพื่อเริ่มดู</div>
+      </div>
+    </div>
+    <div class="trap">
+      <b>จุดหลอก กว.:</b> Bubble Sort เปรียบเทียบ<b>คู่ที่อยู่ติดกัน</b>เท่านั้น (arr[j] กับ arr[j+1]) และสลับเมื่อลำดับผิด ทำให้ค่าที่มากที่สุดค่อยๆ "ลอย" ไปอยู่ท้ายอาร์เรย์ทีละรอบ เหมือนฟองอากาศลอยขึ้น — จำนวนรอบสูงสุดคือ n-1 รอบ (n = จำนวนสมาชิก)
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Stack (LIFO) และ Queue (FIFO)</h2>
+    <div class="stackQueueGrid">
+      <div class="sqBox">
+        <h3>📚 Stack — เข้าหลังออกก่อน (LIFO)</h3>
+        <div class="sqControls">
+          <input type="text" id="stackVal" placeholder="ค่า" value="1">
+          <button class="primary" id="btnPush">Push</button>
+          <button class="secondary" id="btnPop">Pop</button>
+          <button class="secondary" id="btnStackReset">↺</button>
+        </div>
+        <div class="stackVisual" id="stackVisual"><div class="emptyNote">Stack ว่าง — กด Push เพื่อเริ่ม</div></div>
+      </div>
+      <div class="sqBox">
+        <h3>🚶 Queue — เข้าก่อนออกก่อน (FIFO)</h3>
+        <div class="sqControls">
+          <input type="text" id="queueVal" placeholder="ค่า" value="1">
+          <button class="primary" id="btnEnqueue">Enqueue</button>
+          <button class="secondary" id="btnDequeue">Dequeue</button>
+          <button class="secondary" id="btnQueueReset">↺</button>
+        </div>
+        <div class="queueVisual" id="queueVisual"><div class="emptyNote">Queue ว่าง — กด Enqueue เพื่อเริ่ม</div></div>
+      </div>
+    </div>
+    <div class="trap">
+      <b>จุดหลอก กว.:</b> <b>Stack (LIFO)</b> เหมือนกองจาน — หยิบจานแผ่นบนสุดออกก่อนเสมอ (เช่น การกด Undo, การเรียกฟังก์ชันซ้อนกัน) ส่วน <b>Queue (FIFO)</b> เหมือนแถวต่อคิว — คนที่มาก่อนได้ออกก่อน (เช่น คิวพิมพ์เอกสาร) ข้อสอบมักสลับให้ตอบผิดระหว่างสองแนวคิดนี้
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ทดสอบความเข้าใจ</h2>
+    <div id="quiz"></div>
+  </div>
+
+</div>
+
+<footer>
+  พัฒนาโดย ผศ.ดร.กุลวลัญช์ วรุณสิน | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง<br>
+  ไฟล์นี้เปิดใช้งานได้แบบออฟไลน์ (หากไม่มีอินเทอร์เน็ต ฟอนต์จะสลับเป็นฟอนต์ไทยของระบบโดยอัตโนมัติ)
+</footer>
+
+<script>
+/* ================= Bubble Sort ================= */
+function* bubbleSortSteps(arr){
+  const a = arr.slice();
+  const n = a.length;
+  let comparisons=0, swaps=0;
+  for(let i=0;i<n-1;i++){
+    yield {type:'pass-start', i, arr:a.slice(), comparisons, swaps};
+    let swappedInPass=false;
+    for(let j=0;j<n-1-i;j++){
+      yield {type:'compare', i, j, arr:a.slice(), comparisons, swaps};
+      comparisons++;
+      if(a[j] > a[j+1]){
+        [a[j],a[j+1]] = [a[j+1],a[j]];
+        swaps++; swappedInPass=true;
+        yield {type:'swap', i, j, arr:a.slice(), comparisons, swaps};
+      } else {
+        yield {type:'noswap', i, j, arr:a.slice(), comparisons, swaps};
+      }
+    }
+    yield {type:'pass-end', i, arr:a.slice(), comparisons, swaps, swappedInPass};
+    if(!swappedInPass) break;
+  }
+  yield {type:'done', arr:a.slice(), comparisons, swaps};
+}
+
+let sortArr = [], sortGen = null, sortDone = false, sortAutoTimer = null;
+const barsHost = document.getElementById('barsHost');
+const statCompare = document.getElementById('statCompare');
+const statSwap = document.getElementById('statSwap');
+const statPass = document.getElementById('statPass');
+const statDone = document.getElementById('statDone');
+const stepNote = document.getElementById('stepNote');
+
+function parseArrInput(){
+  const raw = document.getElementById('arrInput').value;
+  const parts = raw.split(',').map(s=>s.trim()).filter(s=>s!=='').map(Number);
+  return parts.filter(n=>!isNaN(n));
+}
+function buildSort(){
+  sortArr = parseArrInput();
+  if(sortArr.length < 2){ sortArr = [5,2,8,1,9,3]; }
+  if(sortArr.length > 10){ sortArr = sortArr.slice(0,10); }
+  sortGen = bubbleSortSteps(sortArr);
+  sortDone = false;
+  stopAutoSort();
+  statCompare.textContent='0'; statSwap.textContent='0'; statPass.textContent='0';
+  statDone.style.display='none';
+  document.querySelectorAll('.pl.active').forEach(el=>el.classList.remove('active'));
+  renderBars(sortArr, {});
+  stepNote.textContent = 'กด "ทีละขั้น" เพื่อเริ่มดู';
+}
+function renderBars(arr, opts){
+  const max = Math.max(...arr, 1);
+  barsHost.innerHTML = '';
+  arr.forEach((v,idx)=>{
+    const col = document.createElement('div');
+    col.className = 'barCol';
+    const pct = Math.max(18, (v/max)*170);
+    let cls = 'bar';
+    if(opts.sortedFrom!==undefined && idx>=opts.sortedFrom) cls += ' sorted';
+    if(opts.compareIdx && (idx===opts.compareIdx[0]||idx===opts.compareIdx[1])) cls += ' compare';
+    if(opts.swapIdx && (idx===opts.swapIdx[0]||idx===opts.swapIdx[1])) cls += ' swap';
+    col.innerHTML = `<div class="pancake">🥞</div><div class="${cls}" style="height:${pct}px">${v}</div>`;
+    barsHost.appendChild(col);
+  });
+}
+function setActiveLine(id){
+  document.querySelectorAll('.pl.active').forEach(el=>el.classList.remove('active'));
+  if(id) document.getElementById(id).classList.add('active');
+}
+function applyStep(step){
+  statCompare.textContent = step.comparisons;
+  statSwap.textContent = step.swaps;
+  if(step.type==='pass-start'){ statPass.textContent = step.i+1; setActiveLine('pl1'); stepNote.textContent = `เริ่มรอบที่ ${step.i+1}`; renderBars(step.arr,{sortedFrom: step.arr.length-step.i}); }
+  else if(step.type==='compare'){ setActiveLine('pl3'); stepNote.textContent = `เปรียบเทียบ arr[${step.j}]=${step.arr[step.j]} กับ arr[${step.j+1}]=${step.arr[step.j+1]}`; renderBars(step.arr,{compareIdx:[step.j,step.j+1]}); }
+  else if(step.type==='swap'){ setActiveLine('pl4'); stepNote.textContent = `สลับ! เพราะ arr[${step.j}] > arr[${step.j+1}]`; renderBars(step.arr,{swapIdx:[step.j,step.j+1]}); }
+  else if(step.type==='noswap'){ setActiveLine('pl2'); stepNote.textContent = `ไม่ต้องสลับ (ลำดับถูกต้องอยู่แล้ว)`; renderBars(step.arr,{}); }
+  else if(step.type==='pass-end'){ stepNote.textContent = step.swappedInPass? `จบรอบที่ ${step.i+1}` : `จบรอบที่ ${step.i+1} — ไม่มีการสลับเลย แสดงว่าเรียงเสร็จแล้ว!`; renderBars(step.arr,{sortedFrom: step.arr.length-step.i-1}); }
+  else if(step.type==='done'){
+    sortDone = true;
+    setActiveLine(null);
+    statDone.style.display='inline-block';
+    stepNote.textContent = `เรียงเสร็จสมบูรณ์! เปรียบเทียบทั้งหมด ${step.comparisons} ครั้ง สลับ ${step.swaps} ครั้ง`;
+    renderBars(step.arr,{sortedFrom:0});
+    stopAutoSort();
+  }
+}
+function stepSort(){
+  if(!sortGen || sortDone) return;
+  const r = sortGen.next();
+  if(r.done) return;
+  applyStep(r.value);
+}
+document.getElementById('btnBuildSort').addEventListener('click', buildSort);
+document.getElementById('btnStepSort').addEventListener('click', ()=>{ stopAutoSort(); stepSort(); });
+document.getElementById('btnResetSort').addEventListener('click', buildSort);
+function stopAutoSort(){ if(sortAutoTimer){ clearInterval(sortAutoTimer); sortAutoTimer=null; document.getElementById('btnAutoSort').textContent='▶▶ เล่นอัตโนมัติ'; } }
+document.getElementById('btnAutoSort').addEventListener('click', ()=>{
+  if(sortAutoTimer){ stopAutoSort(); return; }
+  document.getElementById('btnAutoSort').textContent='⏸ หยุดชั่วคราว';
+  const speed = () => parseInt(document.getElementById('speedSort').value,10);
+  const loop = ()=>{ if(sortDone){ stopAutoSort(); return; } stepSort(); sortAutoTimer = setTimeout(loop, speed()); };
+  sortAutoTimer = setTimeout(loop, speed());
+});
+buildSort();
+
+/* ================= Stack ================= */
+let stack = [];
+const stackVisual = document.getElementById('stackVisual');
+function renderStack(){
+  stackVisual.innerHTML = '';
+  if(stack.length===0){ stackVisual.innerHTML = '<div class="emptyNote">Stack ว่าง — กด Push เพื่อเริ่ม</div>'; return; }
+  stack.forEach((v,i)=>{
+    const el = document.createElement('div');
+    el.className = 'plate' + (i===stack.length-1 ? ' top':'');
+    el.textContent = v + (i===stack.length-1 ? '  ← TOP' : '');
+    stackVisual.appendChild(el);
+  });
+}
+document.getElementById('btnPush').addEventListener('click', ()=>{
+  const v = document.getElementById('stackVal').value.trim();
+  if(v===''){ return; }
+  if(stack.length>=8){ alert('Stack เต็ม (จำลองความจุสูงสุด 8)'); return; }
+  stack.push(v);
+  renderStack();
+});
+document.getElementById('btnPop').addEventListener('click', ()=>{
+  if(stack.length===0){ alert('Stack ว่างแล้ว ไม่สามารถ Pop ได้ (Stack Underflow)'); return; }
+  stack.pop();
+  renderStack();
+});
+document.getElementById('btnStackReset').addEventListener('click', ()=>{ stack=[]; renderStack(); });
+renderStack();
+
+/* ================= Queue ================= */
+let queue = [];
+const queueVisual = document.getElementById('queueVisual');
+function renderQueue(){
+  queueVisual.innerHTML = '';
+  if(queue.length===0){ queueVisual.innerHTML = '<div class="emptyNote">Queue ว่าง — กด Enqueue เพื่อเริ่ม</div>'; return; }
+  queue.forEach((v,i)=>{
+    const el = document.createElement('div');
+    let cls = 'qitem';
+    if(i===0) cls += ' front';
+    if(i===queue.length-1) cls += ' rear';
+    el.className = cls;
+    el.textContent = v;
+    queueVisual.appendChild(el);
+  });
+}
+document.getElementById('btnEnqueue').addEventListener('click', ()=>{
+  const v = document.getElementById('queueVal').value.trim();
+  if(v===''){ return; }
+  if(queue.length>=10){ alert('Queue เต็ม (จำลองความจุสูงสุด 10)'); return; }
+  queue.push(v);
+  renderQueue();
+});
+document.getElementById('btnDequeue').addEventListener('click', ()=>{
+  if(queue.length===0){ alert('Queue ว่างแล้ว ไม่สามารถ Dequeue ได้'); return; }
+  queue.shift();
+  renderQueue();
+});
+document.getElementById('btnQueueReset').addEventListener('click', ()=>{ queue=[]; renderQueue(); });
+renderQueue();
+
+/* ================= Quiz ================= */
+const QUESTIONS = [
+  {
+    q: '1) Bubble Sort เปรียบเทียบข้อมูลลักษณะใด?',
+    opts: ['สุ่มเปรียบเทียบ 2 ตัวใดก็ได้','เปรียบเทียบคู่ที่อยู่ติดกันเรียงไปเรื่อยๆ','เปรียบเทียบตัวแรกกับทุกตัว','แบ่งครึ่งแล้วเปรียบเทียบ'],
+    ans: 1,
+    exp: 'ถูกต้อง — Bubble Sort เปรียบเทียบสมาชิกที่อยู่ติดกัน (arr[j] กับ arr[j+1]) แล้วสลับถ้าลำดับผิด ทำซ้ำจนครบ'
+  },
+  {
+    q: '2) โครงสร้างข้อมูลแบบ Stack ทำงานตามหลักการใด?',
+    opts: ['FIFO (เข้าก่อนออกก่อน)','LIFO (เข้าหลังออกก่อน)','เรียงลำดับอัตโนมัติ','เข้าถึงข้อมูลแบบสุ่ม'],
+    ans: 1,
+    exp: 'ถูกต้อง — Stack เป็น LIFO (Last In, First Out) เหมือนกองจาน หยิบแผ่นบนสุดออกก่อนเสมอ'
+  },
+  {
+    q: '3) โครงสร้างข้อมูลแบบ Queue ทำงานตามหลักการใด?',
+    opts: ['LIFO (เข้าหลังออกก่อน)','FIFO (เข้าก่อนออกก่อน)','เรียงจากมากไปน้อย','เข้าถึงข้อมูลแบบสุ่ม'],
+    ans: 1,
+    exp: 'ถูกต้อง — Queue เป็น FIFO (First In, First Out) เหมือนแถวคิว คนมาก่อนได้ออกก่อน'
+  },
+  {
+    q: '4) อาร์เรย์ [5,2,8,1] หลังผ่าน Bubble Sort รอบแรก (pass 1) ควรมีค่าเป็นเช่นใด?',
+    opts: ['[1,2,5,8]','[2,5,1,8]','[5,2,8,1]','[8,5,2,1]'],
+    ans: 1,
+    exp: 'ถูกต้อง — รอบแรก: เทียบ 5,2→สลับ[2,5,8,1] เทียบ5,8→ไม่สลับ[2,5,8,1] เทียบ8,1→สลับ[2,5,1,8] ผลลัพธ์คือ [2,5,1,8]'
+  }
+];
+const quizEl = document.getElementById('quiz');
+QUESTIONS.forEach((item)=>{
+  const box = document.createElement('div');
+  box.className = 'quiz-item';
+  box.innerHTML = `<p class="q">${item.q}</p><div class="opts"></div><div class="fb"></div>`;
+  const optsEl = box.querySelector('.opts');
+  item.opts.forEach((opt, oi)=>{
+    const b = document.createElement('button');
+    b.textContent = opt;
+    b.addEventListener('click', ()=>{
+      const fb = box.querySelector('.fb');
+      const allBtns = optsEl.querySelectorAll('button');
+      allBtns.forEach(bb=>bb.disabled=true);
+      if(oi === item.ans){ b.classList.add('correct'); fb.style.color='var(--success)'; fb.textContent='✔ ถูกต้อง! ' + item.exp; }
+      else{ b.classList.add('wrong'); allBtns[item.ans].classList.add('correct'); fb.style.color='var(--danger)'; fb.textContent='✘ ยังไม่ถูก — ' + item.exp; }
+      fb.style.display='block';
+    });
+    optsEl.appendChild(b);
+  });
+  quizEl.appendChild(box);
+});
+</script>
+</body>
+</html>

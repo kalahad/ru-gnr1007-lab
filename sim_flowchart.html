@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 10: Flowchart พาหุ่นยนต์กลับบ้าน | GNR 1007</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#16306C; --navy-dark:#0d1f4d; --navy-light:#24408a;
+  --gold:#C9A227; --gold-light:#e8cf6f;
+  --bg:#eef1f8; --card:#ffffff;
+  --danger:#c0392b; --danger-bg:#fdeaea;
+  --success:#1e8449; --success-bg:#eafaf1;
+  --text:#1c2333; --muted:#657085; --radius:16px;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Noto Sans Thai','Sarabun',sans-serif;background:linear-gradient(180deg,#eef1f8,#f8f9fd 400px);color:var(--text);}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px 60px;}
+header.top{background:linear-gradient(120deg,var(--navy-dark),var(--navy));color:#fff;padding:22px 20px;display:flex;align-items:center;gap:18px;box-shadow:0 4px 18px rgba(22,48,108,.25);}
+header.top img{height:56px;width:auto;border-radius:8px;background:#fff;padding:4px;}
+header.top .ttl{flex:1;}
+header.top h1{margin:0;font-size:1.35rem;font-weight:800;}
+header.top p{margin:4px 0 0;font-size:.85rem;opacity:.85;font-weight:500;}
+.badge{display:inline-block;background:var(--gold);color:var(--navy-dark);font-weight:700;font-size:.75rem;padding:3px 12px;border-radius:20px;margin-bottom:6px;}
+.card{background:var(--card);border-radius:var(--radius);padding:22px 24px;margin-top:22px;box-shadow:0 2px 14px rgba(22,48,108,.08);border:1px solid #e4e8f3;}
+.card h2{margin:0 0 10px;color:var(--navy);font-size:1.15rem;border-left:6px solid var(--gold);padding-left:12px;}
+.intro{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;}
+.intro p{flex:1;min-width:260px;line-height:1.85;margin:0;}
+.chip{background:#eef1f8;border-radius:10px;padding:10px 14px;font-size:.85rem;color:var(--navy-dark);font-weight:600;min-width:150px;text-align:center;}
+.chip b{display:block;font-size:1.05rem;color:var(--navy);}
+
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:6px;}
+.legend .item{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:var(--navy-dark);width:110px;text-align:center;}
+.shape{width:74px;height:44px;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#fff;background:var(--navy);}
+.shape.oval{border-radius:30px;}
+.shape.rect{border-radius:6px;}
+.shape.diamond{width:60px;height:60px;transform:rotate(45deg);border-radius:8px;display:flex;}
+.shape.diamond span{transform:rotate(-45deg);font-size:.62rem;}
+.shape.arrow{background:none;color:var(--navy);font-size:1.6rem;}
+
+.mainGrid{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;}
+.gridHost{display:flex;justify-content:center;padding:14px 0;}
+.mazeGrid{display:grid;gap:3px;background:#d7deee;padding:3px;border-radius:10px;}
+.cell{width:64px;height:64px;background:#f7f9fd;display:flex;align-items:center;justify-content:center;font-size:1.6rem;position:relative;border-radius:4px;}
+.cell.wall{background:#8a94ab;}
+.cell.home{background:var(--success-bg);}
+.cell.start{background:#eef1f8;}
+.robot{font-size:2rem;transition:transform .5s ease, filter .3s;display:inline-block;}
+.robot.crash{filter:drop-shadow(0 0 6px red);animation:crashshake .4s;}
+@keyframes crashshake{10%,90%{transform:translateX(-2px) rotate(var(--rot,0deg))}20%,80%{transform:translateX(4px) rotate(var(--rot,0deg))}30%,50%,70%{transform:translateX(-8px) rotate(var(--rot,0deg))}40%,60%{transform:translateX(8px) rotate(var(--rot,0deg))}}
+
+.paletteRow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.block{padding:10px 14px;border-radius:8px;font-weight:700;font-size:.82rem;cursor:grab;color:#fff;text-align:center;user-select:none;box-shadow:0 2px 6px rgba(0,0,0,.15);}
+.block.rectBlk{background:var(--navy);border-radius:8px;}
+.block.diamondBlk{background:#946200;border-radius:8px;}
+.block small{display:block;font-weight:500;opacity:.85;font-size:.68rem;margin-top:2px;}
+
+.programList{min-height:120px;border:2px dashed #d7deee;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;background:#fbfcfe;}
+.programList.dragover{border-color:var(--navy);background:#eef1f8;}
+.progItem{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:#fff;font-weight:700;font-size:.85rem;cursor:grab;}
+.progItem.rectBlk{background:var(--navy);}
+.progItem.diamondBlk{background:#946200;}
+.progItem.active{outline:3px solid var(--gold);transform:scale(1.03);}
+.progItem .rm{margin-left:auto;background:rgba(255,255,255,.25);border:none;color:#fff;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:800;}
+.progItem .step-n{background:rgba(255,255,255,.3);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.72rem;flex-shrink:0;}
+.emptyMsg{color:var(--muted);font-size:.82rem;text-align:center;padding:20px 0;}
+
+.controlRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center;}
+button.primary{background:var(--navy);color:#fff;border:none;padding:11px 22px;border-radius:10px;font-family:inherit;font-weight:700;font-size:.88rem;cursor:pointer;}
+button.primary:hover{background:var(--navy-light);}
+button.secondary{background:#fff;color:var(--navy);border:2px solid var(--navy);padding:10px 18px;border-radius:10px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;}
+button.secondary:hover{background:#eef1f8;}
+label.toggle{display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:600;color:var(--navy-dark);background:#f5f7fc;padding:8px 14px;border-radius:10px;cursor:pointer;}
+
+.statusbox{margin-top:14px;border-radius:10px;padding:12px 16px;font-weight:700;font-size:.9rem;min-height:24px;}
+.statusbox.info{background:#f0f3fb;color:var(--navy-dark);}
+.statusbox.ok{background:var(--success-bg);color:var(--success);}
+.statusbox.bad{background:var(--danger-bg);color:var(--danger);}
+
+details.hint{margin-top:14px;background:#f0f3fb;border-radius:10px;padding:10px 16px;font-size:.85rem;color:var(--navy-dark);}
+details.hint summary{cursor:pointer;font-weight:700;}
+
+.trap{background:var(--danger-bg);border:1.5px solid #f0b7b0;border-left:6px solid var(--danger);border-radius:12px;padding:14px 18px;margin-top:16px;}
+.trap b{color:var(--danger);}
+
+.quiz-item{border:1px solid #e4e8f3;border-radius:12px;padding:14px 16px;margin-bottom:14px;}
+.quiz-item p.q{font-weight:700;margin:0 0 10px;color:var(--navy-dark);}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.opts button{text-align:left;background:#f7f8fc;border:1.5px solid #dfe4f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:.87rem;cursor:pointer;color:var(--text);}
+.opts button:hover{border-color:var(--navy-light);}
+.opts button.correct{background:var(--success-bg);border-color:var(--success);color:var(--success);font-weight:700;}
+.opts button.wrong{background:var(--danger-bg);border-color:var(--danger);color:var(--danger);font-weight:700;}
+.fb{margin-top:8px;font-size:.85rem;font-weight:600;display:none;}
+
+.backHome{position:fixed;top:16px;right:16px;z-index:998;background:rgba(10,26,64,.9);color:#fff;text-decoration:none;font-weight:700;font-size:.8rem;padding:9px 18px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px);transition:.2s;}
+.backHome:hover{background:var(--gold);color:var(--navy-dark);}
+.labGate{position:fixed;inset:0;background:linear-gradient(135deg,rgba(10,26,64,.97),rgba(22,48,108,.97));z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+.labGateBox{background:#fff;border-radius:20px;padding:34px 30px;max-width:380px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.4);}
+.labGateIcon{font-size:3rem;margin-bottom:10px;}
+.labGateBox h2{color:var(--navy-dark);font-size:1.15rem;margin:0 0 10px;}
+.labGateBox p{color:var(--muted);font-size:.88rem;line-height:1.7;margin:0 0 16px;}
+#labGateCodeBox input{width:100%;padding:10px 14px;border-radius:10px;border:2px solid #d7deee;font-family:'Courier New',monospace;font-size:.95rem;text-align:center;margin-bottom:10px;box-sizing:border-box;}
+#labGateCodeBox button{width:100%;background:var(--navy);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit;}
+#labGateCodeBox button:hover{background:var(--navy-light);}
+.labGateBack{display:inline-block;margin-top:16px;color:var(--navy);font-weight:700;font-size:.82rem;text-decoration:none;}
+.labGateBack:hover{text-decoration:underline;}
+footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;line-height:1.8;}
+@media(max-width:900px){ .mainGrid{grid-template-columns:1fr;} .opts{grid-template-columns:1fr;} .cell{width:50px;height:50px;font-size:1.2rem;} }
+</style>
+</head>
+<body>
+<a href="index.html" class="backHome" title="กลับหน้ารวมห้องทดลอง">← กลับหน้ารวม</a>
+<div id="labGate" class="labGate" style="display:none">
+  <div class="labGateBox">
+    <div class="labGateIcon" id="labGateIcon">🔒</div>
+    <h2 id="labGateTitle">ห้องนี้ปิดให้บริการชั่วคราว</h2>
+    <p id="labGateMsg">ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว</p>
+    <div id="labGateCodeBox" style="display:none">
+      <input type="text" id="labGateCodeInput" placeholder="กรอกรหัสเข้าใช้งาน" autocomplete="off">
+      <button id="labGateUnlockBtn">ปลดล็อก</button>
+      <p id="labGateCodeErr" style="display:none;color:#c0392b;font-size:.78rem;margin-top:8px;font-weight:700">รหัสไม่ถูกต้อง ลองใหม่อีกครั้ง</p>
+    </div>
+    <a href="index.html" class="labGateBack">← กลับหน้ารวมห้องทดลอง</a>
+  </div>
+</div>
+<script src="labs-config.js"></script>
+<script>
+(function(){
+  var FILE = 'sim_flowchart.html';
+  function getCfg(){
+    try{ return (window.LAB_CONFIG && window.LAB_CONFIG.labs && window.LAB_CONFIG.labs[FILE]) || {open:true, locked:false}; }catch(e){ return {open:true, locked:false}; }
+  }
+  function getUnlocked(){ try{ return JSON.parse(localStorage.getItem('gnr1007_unlocked_v1')||'[]'); }catch(e){ return []; } }
+  function unlock(){ try{ var u=getUnlocked(); if(u.indexOf(FILE)===-1){ u.push(FILE); localStorage.setItem('gnr1007_unlocked_v1', JSON.stringify(u)); } }catch(e){} }
+  var cfg = getCfg();
+  var gate = document.getElementById('labGate');
+  if(!cfg.open){
+    gate.style.display='flex';
+    document.getElementById('labGateIcon').textContent='🚧';
+    document.getElementById('labGateTitle').textContent='ห้องนี้ปิดให้บริการชั่วคราว';
+    document.getElementById('labGateMsg').textContent='ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว กรุณาติดต่อผู้สอน หรือกลับไปเลือกห้องอื่น';
+  } else if(cfg.locked && getUnlocked().indexOf(FILE)===-1){
+    gate.style.display='flex';
+    document.getElementById('labGateIcon').textContent='🔒';
+    document.getElementById('labGateTitle').textContent='ห้องทดลองนี้ต้องใช้รหัสเข้าใช้งาน';
+    document.getElementById('labGateMsg').textContent = cfg.price ? ('ระดับการเข้าถึง: '+cfg.price+' — กรอกรหัสที่ได้รับจากผู้สอน') : 'กรอกรหัสที่ได้รับจากผู้สอนเพื่อเข้าใช้งาน';
+    document.getElementById('labGateCodeBox').style.display='block';
+    document.getElementById('labGateUnlockBtn').addEventListener('click', function(){
+      var v = document.getElementById('labGateCodeInput').value.trim();
+      if(v && cfg.code && v.toLowerCase() === String(cfg.code).toLowerCase()){
+        unlock();
+        gate.style.display='none';
+      } else {
+        document.getElementById('labGateCodeErr').style.display='block';
+      }
+    });
+    document.getElementById('labGateCodeInput').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('labGateUnlockBtn').click(); });
+  }
+})();
+</script>
+<header class="top">
+  <img src="eng_ru_logo.png" alt="โลโก้ วิศวกรรมศาสตร์ ม.รามคำแหง" onerror="this.style.display='none'">
+  <div class="ttl">
+    <h1>สื่อโต้ตอบ บทที่ 10 — Flowchart: พาหุ่นยนต์กลับบ้าน</h1>
+    <p>GNR 1007 เตรียมสอบ กว. Computer Programming | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <span class="badge">ทำไมบทนี้สำคัญ</span>
+    <div class="intro">
+      <p>Flowchart คือแผนผังลำดับขั้นตอนการทำงานของโปรแกรมโดยใช้สัญลักษณ์มาตรฐาน ข้อสอบ กว. ชอบถามว่า "สัญลักษณ์นี้คืออะไร" และ "ผลลัพธ์การทำงานตามผังคืออะไร" — ลาก/คลิกบล็อกด้านล่างเพื่อประกอบเป็นโปรแกรมพาหุ่นยนต์เดินไปหาบ้าน แล้วกด "รันโปรแกรม"</p>
+      <div class="chip">น้ำหนักข้อสอบ<b>สูง (ทำคะแนนง่าย)</b></div>
+      <div class="chip">สอนช่วงที่<b>10</b></div>
+    </div>
+    <div class="legend">
+      <div class="item"><div class="shape oval">START/END</div>เริ่มต้น/จบ</div>
+      <div class="item"><div class="shape rect">เดินหน้า</div>Process (ประมวลผล)</div>
+      <div class="item"><div class="shape diamond"><span>เงื่อนไข?</span></div>Decision (ตัดสินใจ)</div>
+      <div class="item"><div class="shape arrow">→</div>ทิศทางการไหล</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ประกอบโปรแกรม Flowchart</h2>
+    <p style="margin-top:0;font-size:.85rem;color:var(--muted)">ลากบล็อกจากคลัง หรือคลิกเพื่อเพิ่มท้ายโปรแกรม — ลากในรายการเพื่อสลับลำดับ</p>
+    <div class="paletteRow" id="palette"></div>
+
+    <div class="mainGrid">
+      <div>
+        <div class="gridHost"><div class="mazeGrid" id="mazeGrid"></div></div>
+        <div class="controlRow" style="justify-content:center">
+          <button class="primary" id="btnRun">▶ รันโปรแกรม</button>
+          <button class="secondary" id="btnStop">⏹ หยุด</button>
+          <button class="secondary" id="btnResetRobot">↺ รีเซ็ตหุ่นยนต์</button>
+          <button class="secondary" id="btnClearProg">🗑 ล้างโปรแกรม</button>
+        </div>
+        <div class="controlRow" style="justify-content:center">
+          <label class="toggle"><input type="checkbox" id="chkRepeat"> ทำซ้ำโปรแกรมจนกว่าจะถึงบ้าน (สูงสุด 20 รอบ)</label>
+        </div>
+        <div class="statusbox info" id="statusbox">ประกอบบล็อกแล้วกด "รันโปรแกรม" — เป้าหมาย: พาหุ่นยนต์ 🤖 ไปที่บ้าน 🏠 โดยไม่ชนกำแพง 🧱</div>
+        <details class="hint"><summary>💡 ดูเฉลยแนวทาง (ลองคิดเองก่อน!)</summary>
+          <p style="margin:8px 0 0">ลำดับหนึ่งที่ใช้ได้: เดินหน้า → เลี้ยวซ้าย → เดินหน้า → เดินหน้า → เลี้ยวขวา → เดินหน้า → เดินหน้า → เดินหน้า (8 บล็อก)</p>
+        </details>
+      </div>
+      <div>
+        <h3 style="color:var(--navy-dark);font-size:.9rem;margin:0 0 8px">โปรแกรมของคุณ</h3>
+        <div class="programList" id="programList"><div class="emptyMsg">ยังไม่มีบล็อก — คลิกบล็อกด้านบนเพื่อเพิ่ม</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="trap">
+      <b>จุดหลอก กว.:</b> สัญลักษณ์ <b>สี่เหลี่ยมผืนผ้า (Process)</b> ใช้แทนขั้นตอนการประมวลผล/คำสั่งทั่วไป ส่วน <b>สี่เหลี่ยมข้าวหลามตัด (Decision)</b> ใช้แทนจุดตัดสินใจที่มี<b>ทางออก 2 ทาง</b>เสมอ (จริง/เท็จ หรือ ใช่/ไม่ใช่) ห้ามสับสนกับ Process เพราะ Process มีทางออกทางเดียว — ข้อสอบมักให้ภาพผังแล้วถามว่าใช้สัญลักษณ์ใดผิด
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ทดสอบความเข้าใจ</h2>
+    <div id="quiz"></div>
+  </div>
+
+</div>
+
+<footer>
+  พัฒนาโดย ผศ.ดร.กุลวลัญช์ วรุณสิน | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง<br>
+  ไฟล์นี้เปิดใช้งานได้แบบออฟไลน์ (หากไม่มีอินเทอร์เน็ต ฟอนต์จะสลับเป็นฟอนต์ไทยของระบบโดยอัตโนมัติ)
+</footer>
+
+<script>
+/* ---------- Maze setup ---------- */
+const ROWS=3, COLS=5;
+const WALLS = [[2,2]]; // row,col
+const START = {row:2, col:0};
+const HOME = {row:0, col:4};
+const FACINGS = ['N','E','S','W'];
+const DELTA = { N:{dr:-1,dc:0}, E:{dr:0,dc:1}, S:{dr:1,dc:0}, W:{dr:0,dc:-1} };
+const ROT = { N:0, E:90, S:180, W:270 };
+
+let robot = { row:START.row, col:START.col, facing:'E' };
+
+function isBlocked(row,col){
+  if(row<0||row>=ROWS||col<0||col>=COLS) return true;
+  return WALLS.some(w=>w[0]===row && w[1]===col);
+}
+
+const mazeGrid = document.getElementById('mazeGrid');
+mazeGrid.style.gridTemplateColumns = `repeat(${COLS}, 64px)`;
+function buildGrid(){
+  mazeGrid.innerHTML = '';
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.id = `cell-${r}-${c}`;
+      if(WALLS.some(w=>w[0]===r&&w[1]===c)){ cell.classList.add('wall'); cell.textContent='🧱'; }
+      else if(r===HOME.row && c===HOME.col){ cell.classList.add('home'); cell.textContent='🏠'; }
+      else if(r===START.row && c===START.col){ cell.classList.add('start'); }
+      mazeGrid.appendChild(cell);
+    }
+  }
+  placeRobot();
+}
+function placeRobot(){
+  document.querySelectorAll('.robot').forEach(el=>el.remove());
+  const cell = document.getElementById(`cell-${robot.row}-${robot.col}`);
+  const rob = document.createElement('span');
+  rob.className = 'robot';
+  rob.id = 'robotIcon';
+  rob.textContent = '🤖';
+  rob.style.setProperty('--rot', ROT[robot.facing]+'deg');
+  rob.style.transform = `rotate(${ROT[robot.facing]}deg)`;
+  cell.appendChild(rob);
+}
+buildGrid();
+
+/* ---------- Palette & program list ---------- */
+const BLOCKS = [
+  {id:'F', label:'เดินหน้า', shape:'rectBlk', desc:'Process'},
+  {id:'L', label:'เลี้ยวซ้าย', shape:'rectBlk', desc:'Process'},
+  {id:'R', label:'เลี้ยวขวา', shape:'rectBlk', desc:'Process'},
+  {id:'D', label:'ถ้ามีกำแพงข้างหน้า?', shape:'diamondBlk', desc:'Decision: จริง→เลี้ยวซ้าย / เท็จ→เดินหน้า'},
+];
+let program = [];
+const paletteEl = document.getElementById('palette');
+BLOCKS.forEach(b=>{
+  const el = document.createElement('div');
+  el.className = 'block ' + b.shape;
+  el.draggable = true;
+  el.innerHTML = `${b.label}<small>${b.desc}</small>`;
+  el.addEventListener('click', ()=>{ program.push(b.id); renderProgram(); });
+  el.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/block', b.id); });
+  paletteEl.appendChild(el);
+});
+
+const programList = document.getElementById('programList');
+programList.addEventListener('dragover', e=>{ e.preventDefault(); programList.classList.add('dragover'); });
+programList.addEventListener('dragleave', ()=>programList.classList.remove('dragover'));
+programList.addEventListener('drop', e=>{
+  e.preventDefault(); programList.classList.remove('dragover');
+  const blockId = e.dataTransfer.getData('text/block');
+  const fromIdx = e.dataTransfer.getData('text/reorder');
+  if(blockId){ program.push(blockId); renderProgram(); }
+  else if(fromIdx!==''){ /* handled per-item drop below */ }
+});
+
+function blockInfo(id){ return BLOCKS.find(b=>b.id===id); }
+
+function renderProgram(){
+  programList.innerHTML = '';
+  if(program.length===0){ programList.innerHTML = '<div class="emptyMsg">ยังไม่มีบล็อก — คลิกบล็อกด้านบนเพื่อเพิ่ม</div>'; return; }
+  program.forEach((id, i)=>{
+    const b = blockInfo(id);
+    const item = document.createElement('div');
+    item.className = 'progItem ' + b.shape;
+    item.draggable = true;
+    item.id = 'prog-'+i;
+    item.innerHTML = `<span class="step-n">${i+1}</span><span>${b.label}</span><button class="rm" title="ลบ">✕</button>`;
+    item.querySelector('.rm').addEventListener('click', ()=>{ program.splice(i,1); renderProgram(); });
+    item.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/reorder', String(i)); });
+    item.addEventListener('dragover', e=>e.preventDefault());
+    item.addEventListener('drop', e=>{
+      e.preventDefault(); e.stopPropagation();
+      const from = e.dataTransfer.getData('text/reorder');
+      const blockId = e.dataTransfer.getData('text/block');
+      if(from!==''){
+        const fromI = parseInt(from,10);
+        const moved = program.splice(fromI,1)[0];
+        program.splice(i,0,moved);
+        renderProgram();
+      } else if(blockId){
+        program.splice(i,0,blockId);
+        renderProgram();
+      }
+    });
+    programList.appendChild(item);
+  });
+}
+document.getElementById('btnClearProg').addEventListener('click', ()=>{ program=[]; renderProgram(); });
+
+/* ---------- Runner ---------- */
+const statusbox = document.getElementById('statusbox');
+let running = false, stopFlag = false;
+function sleep(ms){ return new Promise(res=>setTimeout(res,ms)); }
+
+function turn(dir){
+  const idx = FACINGS.indexOf(robot.facing);
+  robot.facing = dir==='L' ? FACINGS[(idx+3)%4] : FACINGS[(idx+1)%4];
+}
+function targetCell(){
+  const d = DELTA[robot.facing];
+  return { row: robot.row+d.dr, col: robot.col+d.dc };
+}
+async function stepMove(highlightId){
+  const t = targetCell();
+  if(isBlocked(t.row,t.col)){
+    const icon = document.getElementById('robotIcon');
+    icon.classList.add('crash');
+    statusbox.className = 'statusbox bad';
+    statusbox.textContent = '💥 ชน! หุ่นยนต์เดินชนกำแพงหรือขอบเขต โปรแกรมหยุดทำงาน — ลองแก้ลำดับบล็อกใหม่';
+    return false;
+  }
+  robot.row = t.row; robot.col = t.col;
+  placeRobot();
+  return true;
+}
+async function runProgramOnce(){
+  for(let i=0;i<program.length;i++){
+    if(stopFlag) return 'stopped';
+    document.querySelectorAll('.progItem.active').forEach(el=>el.classList.remove('active'));
+    const itemEl = document.getElementById('prog-'+i);
+    if(itemEl) itemEl.classList.add('active');
+    const id = program[i];
+    if(id==='F'){
+      const ok = await stepMove();
+      if(!ok) return 'crash';
+    } else if(id==='L'){
+      turn('L'); placeRobot();
+    } else if(id==='R'){
+      turn('R'); placeRobot();
+    } else if(id==='D'){
+      const t = targetCell();
+      if(isBlocked(t.row,t.col)){ turn('L'); placeRobot(); }
+      else { const ok = await stepMove(); if(!ok) return 'crash'; }
+    }
+    await sleep(650);
+    if(robot.row===HOME.row && robot.col===HOME.col) return 'home';
+  }
+  return 'finished';
+}
+document.getElementById('btnRun').addEventListener('click', async ()=>{
+  if(running) return;
+  if(program.length===0){ statusbox.className='statusbox bad'; statusbox.textContent='✘ กรุณาเพิ่มบล็อกอย่างน้อย 1 บล็อกก่อนรัน'; return; }
+  running = true; stopFlag = false;
+  statusbox.className='statusbox info'; statusbox.textContent='⏳ กำลังรันโปรแกรม...';
+  const repeat = document.getElementById('chkRepeat').checked;
+  let rounds = 0;
+  let result = 'finished';
+  while(true){
+    result = await runProgramOnce();
+    rounds++;
+    if(result==='home' || result==='crash' || result==='stopped') break;
+    if(!repeat) break;
+    if(rounds>=20){ result='maxrounds'; break; }
+  }
+  document.querySelectorAll('.progItem.active').forEach(el=>el.classList.remove('active'));
+  if(result==='home'){ statusbox.className='statusbox ok'; statusbox.textContent='🎉 สำเร็จ! หุ่นยนต์ถึงบ้านแล้ว'; }
+  else if(result==='crash'){ /* status already set in stepMove */ }
+  else if(result==='stopped'){ statusbox.className='statusbox info'; statusbox.textContent='⏹ หยุดการทำงานแล้ว'; }
+  else if(result==='maxrounds'){ statusbox.className='statusbox bad'; statusbox.textContent='⚠ ทำซ้ำครบ 20 รอบแล้วยังไม่ถึงบ้าน — ลองปรับโปรแกรมใหม่'; }
+  else { statusbox.className='statusbox info'; statusbox.textContent = `จบโปรแกรมแล้ว แต่หุ่นยนต์ยังไม่ถึงบ้าน (อยู่ที่แถว ${robot.row}, คอลัมน์ ${robot.col}) — ลองเพิ่มบล็อกหรือกดทำซ้ำ`; }
+  running = false;
+});
+document.getElementById('btnStop').addEventListener('click', ()=>{ stopFlag = true; running=false; });
+document.getElementById('btnResetRobot').addEventListener('click', ()=>{
+  stopFlag = true; running = false;
+  robot = { row:START.row, col:START.col, facing:'E' };
+  document.getElementById('robotIcon')?.classList.remove('crash');
+  buildGrid();
+  document.querySelectorAll('.progItem.active').forEach(el=>el.classList.remove('active'));
+  statusbox.className='statusbox info';
+  statusbox.textContent='รีเซ็ตหุ่นยนต์กลับจุดเริ่มต้นแล้ว';
+});
+renderProgram();
+
+/* ---------- Quiz ---------- */
+const QUESTIONS = [
+  {
+    q: '1) สัญลักษณ์รูปสี่เหลี่ยมข้าวหลามตัด (Diamond) ใน Flowchart หมายถึงอะไร?',
+    opts: ['จุดเริ่มต้น/สิ้นสุด','การประมวลผลทั่วไป','การตัดสินใจ (มี 2 ทางออก)','การนำเข้า/แสดงผลข้อมูล'],
+    ans: 2,
+    exp: 'ถูกต้อง — สี่เหลี่ยมข้าวหลามตัดใช้แทนจุดตัดสินใจที่ต้องมีทางออก 2 ทางเสมอ เช่น จริง/เท็จ'
+  },
+  {
+    q: '2) สัญลักษณ์รูปวงรี (Oval) ใน Flowchart ใช้แทนอะไร?',
+    opts: ['จุดเริ่มต้น/สิ้นสุด (Start/End)','การคำนวณ','การวนซ้ำ','การตัดสินใจ'],
+    ans: 0,
+    exp: 'ถูกต้อง — วงรีใช้แทนจุดเริ่มต้นและจุดสิ้นสุดของผังงานเสมอ'
+  },
+  {
+    q: '3) สัญลักษณ์ใดมีทางออกได้มากกว่า 1 ทาง?',
+    opts: ['สี่เหลี่ยมผืนผ้า (Process)','วงรี (Start/End)','สี่เหลี่ยมข้าวหลามตัด (Decision)','ลูกศร (Arrow)'],
+    ans: 2,
+    exp: 'ถูกต้อง — มีเพียง Decision เท่านั้นที่แตกทางออกได้ (โดยทั่วไป 2 ทาง) ส่วน Process มีทางออกทางเดียวเสมอ'
+  }
+];
+const quizEl = document.getElementById('quiz');
+QUESTIONS.forEach((item)=>{
+  const box = document.createElement('div');
+  box.className = 'quiz-item';
+  box.innerHTML = `<p class="q">${item.q}</p><div class="opts"></div><div class="fb"></div>`;
+  const optsEl = box.querySelector('.opts');
+  item.opts.forEach((opt, oi)=>{
+    const b = document.createElement('button');
+    b.textContent = opt;
+    b.addEventListener('click', ()=>{
+      const fb = box.querySelector('.fb');
+      const allBtns = optsEl.querySelectorAll('button');
+      allBtns.forEach(bb=>bb.disabled=true);
+      if(oi === item.ans){ b.classList.add('correct'); fb.style.color='var(--success)'; fb.textContent='✔ ถูกต้อง! ' + item.exp; }
+      else{ b.classList.add('wrong'); allBtns[item.ans].classList.add('correct'); fb.style.color='var(--danger)'; fb.textContent='✘ ยังไม่ถูก — ' + item.exp; }
+      fb.style.display='block';
+    });
+    optsEl.appendChild(b);
+  });
+  quizEl.appendChild(box);
+});
+</script>
+</body>
+</html>

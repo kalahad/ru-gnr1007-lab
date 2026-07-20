@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 3: จำลอง Overflow ตัวแปร | GNR 1007</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#16306C; --navy-dark:#0d1f4d; --navy-light:#24408a;
+  --gold:#C9A227; --gold-light:#e8cf6f;
+  --bg:#eef1f8; --card:#ffffff;
+  --danger:#c0392b; --danger-bg:#fdeaea;
+  --success:#1e8449; --success-bg:#eafaf1;
+  --text:#1c2333; --muted:#657085; --radius:16px;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Noto Sans Thai','Sarabun',sans-serif;background:linear-gradient(180deg,#eef1f8,#f8f9fd 400px);color:var(--text);}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px;}
+header.top{background:linear-gradient(120deg,var(--navy-dark),var(--navy));color:#fff;padding:22px 20px;display:flex;align-items:center;gap:18px;box-shadow:0 4px 18px rgba(22,48,108,.25);}
+header.top img{height:56px;width:auto;border-radius:8px;background:#fff;padding:4px;}
+header.top .ttl{flex:1;}
+header.top h1{margin:0;font-size:1.35rem;font-weight:800;}
+header.top p{margin:4px 0 0;font-size:.85rem;opacity:.85;font-weight:500;}
+.badge{display:inline-block;background:var(--gold);color:var(--navy-dark);font-weight:700;font-size:.75rem;padding:3px 12px;border-radius:20px;margin-bottom:6px;}
+.card{background:var(--card);border-radius:var(--radius);padding:22px 24px;margin-top:22px;box-shadow:0 2px 14px rgba(22,48,108,.08);border:1px solid #e4e8f3;}
+.card h2{margin:0 0 10px;color:var(--navy);font-size:1.15rem;border-left:6px solid var(--gold);padding-left:12px;}
+.intro{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;}
+.intro p{flex:1;min-width:260px;line-height:1.85;margin:0;}
+.chip{background:#eef1f8;border-radius:10px;padding:10px 14px;font-size:.85rem;color:var(--navy-dark);font-weight:600;min-width:150px;text-align:center;}
+.chip b{display:block;font-size:1.05rem;color:var(--navy);}
+
+.typeToggle{display:flex;gap:10px;margin-bottom:20px;}
+.typeToggle button{flex:1;padding:12px;border-radius:12px;border:2px solid #dfe4f0;background:#f7f8fc;font-family:inherit;font-weight:700;cursor:pointer;font-size:.9rem;color:var(--navy-dark);}
+.typeToggle button.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+.display{text-align:center;padding:20px 10px;border-radius:14px;background:#f5f7fc;margin-bottom:20px;transition:background .25s;}
+.display.flash-over{background:var(--danger-bg);animation:shake .5s;}
+.display .range{font-size:.85rem;color:var(--muted);font-weight:600;margin-bottom:6px;}
+.display .val{font-size:3.2rem;font-weight:800;color:var(--navy);line-height:1;font-family:'Courier New',monospace;}
+.display .val.neg{color:var(--danger);}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-8px)}40%,60%{transform:translateX(8px)}}
+
+.bits{display:flex;justify-content:center;gap:6px;margin:18px 0;flex-wrap:wrap;}
+.bit{width:46px;height:56px;border-radius:8px;background:var(--navy);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:1.3rem;font-family:'Courier New',monospace;transition:.2s;}
+.bit small{font-size:.55rem;font-weight:600;color:var(--gold-light);margin-top:2px;}
+.bit.sign{background:var(--gold);color:var(--navy-dark);}
+.bit.sign small{color:var(--navy-dark);}
+
+.controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+button.step{background:#fff;border:2px solid var(--navy);color:var(--navy);font-weight:800;font-size:1rem;padding:10px 18px;border-radius:10px;cursor:pointer;font-family:inherit;}
+button.step:hover{background:var(--navy);color:#fff;}
+button.step.big{background:var(--navy);color:#fff;}
+button.reset{background:#fff;border:2px solid var(--muted);color:var(--muted);font-weight:700;padding:10px 18px;border-radius:10px;cursor:pointer;font-family:inherit;}
+input[type=range]{width:100%;accent-color:var(--navy);height:6px;}
+.sliderRow{margin:14px 0 4px;}
+.sliderLabels{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-weight:600;}
+
+.msgbox{min-height:56px;border-radius:10px;padding:12px 16px;font-weight:700;font-size:.92rem;margin-top:10px;transition:.2s;}
+.msgbox.info{background:#f0f3fb;color:var(--navy-dark);}
+.msgbox.over{background:var(--danger-bg);color:var(--danger);border:1.5px solid #f0b7b0;}
+.msgbox.ok{background:var(--success-bg);color:var(--success);border:1.5px solid #b8e2c8;}
+
+table.spec{width:100%;border-collapse:collapse;margin-top:8px;font-size:.88rem;}
+table.spec th,table.spec td{border:1px solid #dfe4f0;padding:9px 10px;text-align:center;}
+table.spec th{background:var(--navy);color:#fff;font-weight:700;}
+table.spec td.name{text-align:left;font-weight:700;color:var(--navy-dark);background:#f5f7fc;}
+
+.trap{background:var(--danger-bg);border:1.5px solid #f0b7b0;border-left:6px solid var(--danger);border-radius:12px;padding:14px 18px;margin-top:16px;}
+.trap b{color:var(--danger);}
+
+.quiz-item{border:1px solid #e4e8f3;border-radius:12px;padding:14px 16px;margin-bottom:14px;}
+.quiz-item p.q{font-weight:700;margin:0 0 10px;color:var(--navy-dark);}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.opts button{text-align:left;background:#f7f8fc;border:1.5px solid #dfe4f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:.87rem;cursor:pointer;color:var(--text);}
+.opts button:hover{border-color:var(--navy-light);}
+.opts button.correct{background:var(--success-bg);border-color:var(--success);color:var(--success);font-weight:700;}
+.opts button.wrong{background:var(--danger-bg);border-color:var(--danger);color:var(--danger);font-weight:700;}
+.fb{margin-top:8px;font-size:.85rem;font-weight:600;display:none;}
+
+.backHome{position:fixed;top:16px;right:16px;z-index:998;background:rgba(10,26,64,.9);color:#fff;text-decoration:none;font-weight:700;font-size:.8rem;padding:9px 18px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px);transition:.2s;}
+.backHome:hover{background:var(--gold);color:var(--navy-dark);}
+.labGate{position:fixed;inset:0;background:linear-gradient(135deg,rgba(10,26,64,.97),rgba(22,48,108,.97));z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+.labGateBox{background:#fff;border-radius:20px;padding:34px 30px;max-width:380px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.4);}
+.labGateIcon{font-size:3rem;margin-bottom:10px;}
+.labGateBox h2{color:var(--navy-dark);font-size:1.15rem;margin:0 0 10px;}
+.labGateBox p{color:var(--muted);font-size:.88rem;line-height:1.7;margin:0 0 16px;}
+#labGateCodeBox input{width:100%;padding:10px 14px;border-radius:10px;border:2px solid #d7deee;font-family:'Courier New',monospace;font-size:.95rem;text-align:center;margin-bottom:10px;box-sizing:border-box;}
+#labGateCodeBox button{width:100%;background:var(--navy);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit;}
+#labGateCodeBox button:hover{background:var(--navy-light);}
+.labGateBack{display:inline-block;margin-top:16px;color:var(--navy);font-weight:700;font-size:.82rem;text-decoration:none;}
+.labGateBack:hover{text-decoration:underline;}
+footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;line-height:1.8;}
+@media(max-width:680px){ .opts{grid-template-columns:1fr;} .bit{width:34px;height:44px;font-size:1rem;} .display .val{font-size:2.2rem;} }
+</style>
+</head>
+<body>
+<a href="index.html" class="backHome" title="กลับหน้ารวมห้องทดลอง">← กลับหน้ารวม</a>
+<div id="labGate" class="labGate" style="display:none">
+  <div class="labGateBox">
+    <div class="labGateIcon" id="labGateIcon">🔒</div>
+    <h2 id="labGateTitle">ห้องนี้ปิดให้บริการชั่วคราว</h2>
+    <p id="labGateMsg">ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว</p>
+    <div id="labGateCodeBox" style="display:none">
+      <input type="text" id="labGateCodeInput" placeholder="กรอกรหัสเข้าใช้งาน" autocomplete="off">
+      <button id="labGateUnlockBtn">ปลดล็อก</button>
+      <p id="labGateCodeErr" style="display:none;color:#c0392b;font-size:.78rem;margin-top:8px;font-weight:700">รหัสไม่ถูกต้อง ลองใหม่อีกครั้ง</p>
+    </div>
+    <a href="index.html" class="labGateBack">← กลับหน้ารวมห้องทดลอง</a>
+  </div>
+</div>
+<script src="labs-config.js"></script>
+<script>
+(function(){
+  var FILE = 'sim_overflow.html';
+  function getCfg(){
+    try{ return (window.LAB_CONFIG && window.LAB_CONFIG.labs && window.LAB_CONFIG.labs[FILE]) || {open:true, locked:false}; }catch(e){ return {open:true, locked:false}; }
+  }
+  function getUnlocked(){ try{ return JSON.parse(localStorage.getItem('gnr1007_unlocked_v1')||'[]'); }catch(e){ return []; } }
+  function unlock(){ try{ var u=getUnlocked(); if(u.indexOf(FILE)===-1){ u.push(FILE); localStorage.setItem('gnr1007_unlocked_v1', JSON.stringify(u)); } }catch(e){} }
+  var cfg = getCfg();
+  var gate = document.getElementById('labGate');
+  if(!cfg.open){
+    gate.style.display='flex';
+    document.getElementById('labGateIcon').textContent='🚧';
+    document.getElementById('labGateTitle').textContent='ห้องนี้ปิดให้บริการชั่วคราว';
+    document.getElementById('labGateMsg').textContent='ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว กรุณาติดต่อผู้สอน หรือกลับไปเลือกห้องอื่น';
+  } else if(cfg.locked && getUnlocked().indexOf(FILE)===-1){
+    gate.style.display='flex';
+    document.getElementById('labGateIcon').textContent='🔒';
+    document.getElementById('labGateTitle').textContent='ห้องทดลองนี้ต้องใช้รหัสเข้าใช้งาน';
+    document.getElementById('labGateMsg').textContent = cfg.price ? ('ระดับการเข้าถึง: '+cfg.price+' — กรอกรหัสที่ได้รับจากผู้สอน') : 'กรอกรหัสที่ได้รับจากผู้สอนเพื่อเข้าใช้งาน';
+    document.getElementById('labGateCodeBox').style.display='block';
+    document.getElementById('labGateUnlockBtn').addEventListener('click', function(){
+      var v = document.getElementById('labGateCodeInput').value.trim();
+      if(v && cfg.code && v.toLowerCase() === String(cfg.code).toLowerCase()){
+        unlock();
+        gate.style.display='none';
+      } else {
+        document.getElementById('labGateCodeErr').style.display='block';
+      }
+    });
+    document.getElementById('labGateCodeInput').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('labGateUnlockBtn').click(); });
+  }
+})();
+</script>
+<header class="top">
+  <img src="eng_ru_logo.png" alt="โลโก้ วิศวกรรมศาสตร์ ม.รามคำแหง" onerror="this.style.display='none'">
+  <div class="ttl">
+    <h1>สื่อโต้ตอบ บทที่ 3 — จำลอง Overflow ของตัวแปร</h1>
+    <p>GNR 1007 เตรียมสอบ กว. Computer Programming | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <span class="badge">ทำไมบทนี้สำคัญ</span>
+    <div class="intro">
+      <p>ตัวแปรแต่ละชนิดเก็บค่าได้ในช่วงจำกัดตามจำนวนบิต เมื่อบวกจนเกินค่าสูงสุด ค่าจะ "วนกลับ" ไปเป็นค่าต่ำสุดทันที (ไม่ error) ข้อสอบ กว. ชอบถามค่าสูงสุด/ต่ำสุดของ <code>char</code> และผลลัพธ์เมื่อ overflow ลองกดปุ่มเพิ่มค่าไปเรื่อยๆ แล้วสังเกตตัวเลขและบิตด้านล่าง</p>
+      <div class="chip">น้ำหนักข้อสอบ<b>สูง</b></div>
+      <div class="chip">สอนช่วงที่<b>2</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ตัวแปรจำลอง (8 บิต)</h2>
+    <div class="typeToggle">
+      <button id="btnSigned" class="active">signed char (-128 ถึง 127)</button>
+      <button id="btnUnsigned">unsigned char (0 ถึง 255)</button>
+    </div>
+
+    <div class="display" id="display">
+      <div class="range" id="rangeLabel">ช่วงค่าที่เก็บได้: -128 ถึง 127</div>
+      <div class="val" id="valBig">0</div>
+    </div>
+
+    <div class="bits" id="bits"></div>
+
+    <div class="controls">
+      <button class="step" id="m10">-10</button>
+      <button class="step" id="m1">-1</button>
+      <button class="step big" id="p1">+1</button>
+      <button class="step" id="p10">+10</button>
+      <button class="reset" id="reset">↺ Reset = 0</button>
+    </div>
+
+    <div class="sliderRow">
+      <input type="range" id="slider" min="-300" max="500" value="0" step="1">
+      <div class="sliderLabels"><span>ลากเพื่อดูค่าเปลี่ยนเร็วๆ (ข้ามหลายรอบ)</span><span id="rawLabel">raw = 0</span></div>
+    </div>
+
+    <div class="msgbox info" id="msgbox">ลองกดปุ่ม "+1" ค้างไว้จนค่าเข้าใกล้ 127 แล้วสังเกตสิ่งที่เกิดขึ้น</div>
+  </div>
+
+  <div class="card">
+    <h2>ตารางชนิดข้อมูลจำนวนเต็มที่ออกสอบบ่อย</h2>
+    <table class="spec">
+      <tr><th>ชนิด</th><th>ขนาด</th><th>ช่วงค่า</th></tr>
+      <tr><td class="name">char (signed)</td><td>1 byte (8 bit)</td><td>-128 ถึง 127</td></tr>
+      <tr><td class="name">unsigned char</td><td>1 byte (8 bit)</td><td>0 ถึง 255</td></tr>
+      <tr><td class="name">int (signed, ทั่วไป)</td><td>4 byte (32 bit)</td><td>-2,147,483,648 ถึง 2,147,483,647</td></tr>
+      <tr><td class="name">unsigned int</td><td>4 byte (32 bit)</td><td>0 ถึง 4,294,967,295</td></tr>
+    </table>
+    <div class="trap">
+      <b>จุดหลอก กว.:</b> <code>char</code> เก็บค่าสูงสุดได้ <b>127 ไม่ใช่ 128</b> เพราะ 1 บิต (บิตซ้ายสุด) ถูกใช้เป็น "บิตเครื่องหมาย" (Sign Bit) ทำให้เหลือใช้แทนขนาดจริง 7 บิต (2⁷ = 128 ค่า แบ่งเป็นบวก 0-127 และลบ -1 ถึง -128) — ห้ามสับสนกับ <code>unsigned char</code> ที่ไม่มีบิตเครื่องหมายจึงเก็บได้ถึง 255
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ทดสอบความเข้าใจ</h2>
+    <div id="quiz"></div>
+  </div>
+
+</div>
+
+<footer>
+  พัฒนาโดย ผศ.ดร.กุลวลัญช์ วรุณสิน | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง<br>
+  ไฟล์นี้เปิดใช้งานได้แบบออฟไลน์ (หากไม่มีอินเทอร์เน็ต ฟอนต์จะสลับเป็นฟอนต์ไทยของระบบโดยอัตโนมัติ)
+</footer>
+
+<script>
+let type = 'signed'; // 'signed' | 'unsigned'
+let raw = 0;
+let lastWrapped = 0;
+
+const displayEl = document.getElementById('display');
+const valBig = document.getElementById('valBig');
+const rangeLabel = document.getElementById('rangeLabel');
+const bitsEl = document.getElementById('bits');
+const msgbox = document.getElementById('msgbox');
+const slider = document.getElementById('slider');
+const rawLabel = document.getElementById('rawLabel');
+
+function toUint8(n){ return ((n % 256) + 256) % 256; }
+function toInt8(n){ const u = toUint8(n); return u > 127 ? u - 256 : u; }
+function wrappedValue(n){ return type === 'signed' ? toInt8(n) : toUint8(n); }
+
+function render(triggeredByDelta){
+  const u8 = toUint8(raw);
+  const val = wrappedValue(raw);
+  valBig.textContent = val;
+  valBig.classList.toggle('neg', val < 0);
+  rawLabel.textContent = 'raw (จำนวนครั้งที่บวกสะสม) = ' + raw;
+  slider.value = raw;
+
+  // bits
+  const bitsStr = u8.toString(2).padStart(8,'0');
+  bitsEl.innerHTML = '';
+  [...bitsStr].forEach((b, i)=>{
+    const d = document.createElement('div');
+    d.className = 'bit' + (type==='signed' && i===0 ? ' sign' : '');
+    d.innerHTML = b + (i===0 ? (type==='signed' ? '<small>SIGN</small>' : '<small>MSB</small>') : '');
+    bitsEl.appendChild(d);
+  });
+
+  // overflow detection
+  if(triggeredByDelta){
+    const dir = triggeredByDelta; // 'up' or 'down'
+    let overflowed = false;
+    if(dir === 'up' && val < lastWrapped) overflowed = true;
+    if(dir === 'down' && val > lastWrapped) overflowed = true;
+    if(overflowed){
+      displayEl.classList.remove('flash-over'); void displayEl.offsetWidth; displayEl.classList.add('flash-over');
+      const maxV = type==='signed' ? 127 : 255;
+      const minV = type==='signed' ? -128 : 0;
+      if(dir==='up'){
+        msgbox.className = 'msgbox over';
+        msgbox.textContent = `⚠ OVERFLOW! ${lastWrapped} + 1 = ${val}  → ค่าเกิน max (${maxV}) จึงวนกลับไปเริ่มที่ min (${minV})`;
+      }else{
+        msgbox.className = 'msgbox over';
+        msgbox.textContent = `⚠ UNDERFLOW! ${lastWrapped} - 1 = ${val}  → ค่าต่ำกว่า min (${minV}) จึงวนกลับไปเริ่มที่ max (${maxV})`;
+      }
+    }else{
+      msgbox.className = 'msgbox ok';
+      msgbox.textContent = `ค่าปัจจุบัน = ${val} (อยู่ในช่วงปกติ ยังไม่เกิด overflow)`;
+    }
+  }
+  lastWrapped = val;
+}
+
+function bump(delta){
+  const before = wrappedValue(raw);
+  raw += delta;
+  raw = Math.max(-300, Math.min(500, raw));
+  render(delta > 0 ? 'up' : 'down');
+}
+
+document.getElementById('p1').addEventListener('click', ()=>bump(1));
+document.getElementById('m1').addEventListener('click', ()=>bump(-1));
+document.getElementById('p10').addEventListener('click', ()=>bump(10));
+document.getElementById('m10').addEventListener('click', ()=>bump(-10));
+document.getElementById('reset').addEventListener('click', ()=>{
+  raw = 0; lastWrapped = wrappedValue(0);
+  msgbox.className='msgbox info';
+  msgbox.textContent = 'รีเซ็ตค่ากลับเป็น 0 แล้ว';
+  render(false);
+});
+slider.addEventListener('input', (e)=>{
+  const newRaw = parseInt(e.target.value, 10);
+  const dir = newRaw > raw ? 'up' : (newRaw < raw ? 'down' : false);
+  raw = newRaw;
+  render(dir);
+});
+
+function setType(t){
+  type = t;
+  document.getElementById('btnSigned').classList.toggle('active', t==='signed');
+  document.getElementById('btnUnsigned').classList.toggle('active', t==='unsigned');
+  rangeLabel.textContent = t==='signed' ? 'ช่วงค่าที่เก็บได้: -128 ถึง 127' : 'ช่วงค่าที่เก็บได้: 0 ถึง 255';
+  lastWrapped = wrappedValue(raw);
+  render(false);
+}
+document.getElementById('btnSigned').addEventListener('click', ()=>setType('signed'));
+document.getElementById('btnUnsigned').addEventListener('click', ()=>setType('unsigned'));
+
+render(false);
+
+// Quiz
+const QUESTIONS = [
+  {
+    q: '1) ตัวแปร signed char เก็บค่าได้สูงสุดเท่าใด?',
+    opts: ['127','128','255','256'],
+    ans: 0,
+    exp: 'ถูกต้อง — char มี 1 byte = 8 บิต ใช้ 1 บิตเป็นเครื่องหมาย เหลือ 7 บิตแทนขนาด (0-127) จึงเก็บค่าบวกสูงสุดได้ 127'
+  },
+  {
+    q: '2) ถ้า signed char เก็บค่า 127 อยู่ แล้วบวกเพิ่มอีก 1 ผลลัพธ์คือเท่าใด?',
+    opts: ['128','-128','0','127 (ค้างที่เดิม)'],
+    ans: 1,
+    exp: 'ถูกต้อง — เกิด Overflow ค่าจะวนกลับไปที่ค่าต่ำสุดของช่วงคือ -128 ไม่ใช่หยุดที่ 127 หรือกลายเป็น 128'
+  },
+  {
+    q: '3) unsigned char ต่างจาก signed char อย่างไร?',
+    opts: [
+      'ไม่มี — เหมือนกันทุกประการ',
+      'unsigned char มีขนาด 2 byte',
+      'unsigned char ไม่มีบิตเครื่องหมาย จึงเก็บค่าบวกได้ถึง 255',
+      'signed char เก็บค่าได้มากกว่า unsigned char'
+    ],
+    ans: 2,
+    exp: 'ถูกต้อง — unsigned char ไม่ต้องเผื่อบิตไว้แทนเครื่องหมายลบ จึงใช้ทั้ง 8 บิตแทนค่าบวกล้วนๆ ได้ 0-255'
+  }
+];
+
+const quizEl = document.getElementById('quiz');
+QUESTIONS.forEach((item)=>{
+  const box = document.createElement('div');
+  box.className = 'quiz-item';
+  box.innerHTML = `<p class="q">${item.q}</p><div class="opts"></div><div class="fb"></div>`;
+  const optsEl = box.querySelector('.opts');
+  item.opts.forEach((opt, oi)=>{
+    const b = document.createElement('button');
+    b.textContent = opt;
+    b.addEventListener('click', ()=>{
+      const fb = box.querySelector('.fb');
+      const allBtns = optsEl.querySelectorAll('button');
+      allBtns.forEach(bb=>bb.disabled=true);
+      if(oi === item.ans){
+        b.classList.add('correct');
+        fb.style.color = 'var(--success)';
+        fb.textContent = '✔ ถูกต้อง! ' + item.exp;
+      }else{
+        b.classList.add('wrong');
+        allBtns[item.ans].classList.add('correct');
+        fb.style.color = 'var(--danger)';
+        fb.textContent = '✘ ยังไม่ถูก — ' + item.exp;
+      }
+      fb.style.display='block';
+    });
+    optsEl.appendChild(b);
+  });
+  quizEl.appendChild(box);
+});
+</script>
+</body>
+</html>
