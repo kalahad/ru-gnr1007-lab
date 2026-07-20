@@ -113,40 +113,8 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;lin
   </div>
 </div>
 <script src="labs-config.js"></script>
-<script>
-(function(){
-  var FILE = 'sim_trace.html';
-  function getCfg(){
-    try{ return (window.LAB_CONFIG && window.LAB_CONFIG.labs && window.LAB_CONFIG.labs[FILE]) || {open:true, locked:false}; }catch(e){ return {open:true, locked:false}; }
-  }
-  function getUnlocked(){ try{ return JSON.parse(localStorage.getItem('gnr1007_unlocked_v1')||'[]'); }catch(e){ return []; } }
-  function unlock(){ try{ var u=getUnlocked(); if(u.indexOf(FILE)===-1){ u.push(FILE); localStorage.setItem('gnr1007_unlocked_v1', JSON.stringify(u)); } }catch(e){} }
-  var cfg = getCfg();
-  var gate = document.getElementById('labGate');
-  if(!cfg.open){
-    gate.style.display='flex';
-    document.getElementById('labGateIcon').textContent='🚧';
-    document.getElementById('labGateTitle').textContent='ห้องนี้ปิดให้บริการชั่วคราว';
-    document.getElementById('labGateMsg').textContent='ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว กรุณาติดต่อผู้สอน หรือกลับไปเลือกห้องอื่น';
-  } else if(cfg.locked && getUnlocked().indexOf(FILE)===-1){
-    gate.style.display='flex';
-    document.getElementById('labGateIcon').textContent='🔒';
-    document.getElementById('labGateTitle').textContent='ห้องทดลองนี้ต้องใช้รหัสเข้าใช้งาน';
-    document.getElementById('labGateMsg').textContent = cfg.price ? ('ระดับการเข้าถึง: '+cfg.price+' — กรอกรหัสที่ได้รับจากผู้สอน') : 'กรอกรหัสที่ได้รับจากผู้สอนเพื่อเข้าใช้งาน';
-    document.getElementById('labGateCodeBox').style.display='block';
-    document.getElementById('labGateUnlockBtn').addEventListener('click', function(){
-      var v = document.getElementById('labGateCodeInput').value.trim();
-      if(v && cfg.code && v.toLowerCase() === String(cfg.code).toLowerCase()){
-        unlock();
-        gate.style.display='none';
-      } else {
-        document.getElementById('labGateCodeErr').style.display='block';
-      }
-    });
-    document.getElementById('labGateCodeInput').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('labGateUnlockBtn').click(); });
-  }
-})();
-</script>
+<script src="lab-core.js"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){ LabCore.initGate('sim_trace.html'); });</script>
 <header class="top">
   <img src="eng_ru_logo.png" alt="โลโก้ วิศวกรรมศาสตร์ ม.รามคำแหง" onerror="this.style.display='none'">
   <div class="ttl">
@@ -216,7 +184,17 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;lin
 
   <div class="card">
     <h2>ทดสอบความเข้าใจ</h2>
+    <div class="quizControls">
+      <button class="qcBtn" id="qcRefresh">🔀 สุ่มโจทย์ชุดใหม่</button>
+      <input class="qcSeed" id="qcSeed" placeholder="seed (ไม่บังคับ)" autocomplete="off">
+      <span class="qcHint">ใส่ seed เดียวกันเพื่อได้ชุดโจทย์เดิม (เหมาะเวลาเฉลยหน้าชั้น)</span>
+    </div>
     <div id="quiz"></div>
+  </div>
+
+  <div class="card">
+    <h2>โหมดท้าทาย — จับเวลา 1.8 นาที/ข้อ (แบบสอบ กว.)</h2>
+    <div id="challengeHost"></div>
   </div>
 
 </div>
@@ -620,7 +598,11 @@ Object.keys(PRESETS).forEach(name=>{
   b.addEventListener('click', ()=>{ document.getElementById('codeInput').value = PRESETS[name]; run(); });
   presetsEl.appendChild(b);
 });
-document.getElementById('codeInput').value = PRESETS['Prefix vs Postfix (จุดหลอก กว.)'];
+(function(){ /* layer-3: สุ่มโค้ดตัวอย่างตอนโหลด (ไม่ซ้ำเดิม) */
+  var keys=Object.keys(PRESETS);
+  var R=LabCore.makeRng(String(Date.now())+Math.random());
+  document.getElementById('codeInput').value = PRESETS[keys[Math.floor(R()*keys.length)]];
+})();
 
 let steps = [], idx = 0, autoTimer = null, sourceLines = [], colOrder = [];
 const codePane = document.getElementById('codePane');
@@ -749,7 +731,32 @@ const QUESTIONS = [
     exp: 'ถูกต้อง — ตัวแปรทั้งสองเป็น int การหารจึงตัดเศษทิ้ง (7/2 = 3.5 → ตัดเหลือ 3)'
   }
 ];
-const quizEl = document.getElementById('quiz');
+/* ===== LabCore quiz + Challenge Mode wiring ===== */
+const LAB_FILE = 'sim_trace.html';
+const QUIZ_BANK = [
+  { q:'int x=5; y=x++; ค่า y คือเท่าใด?', opts:['5','6','4','error'], ans:0, exp:'x++ (postfix) นำค่าเดิม 5 ให้ y ก่อน แล้ว x ค่อยเพิ่ม' },
+  { q:'int x=5; z=++x; ค่า z คือเท่าใด?', opts:['5','6','4','error'], ans:1, exp:'++x (prefix) x เพิ่มเป็น 6 ก่อน แล้ว z ได้ค่าใหม่ 6' },
+  { q:'for(int i=1;i<=5;i++) sum+=i; ลูปทำงานกี่รอบ?', opts:['4','5','6','ไม่จำกัด'], ans:1, exp:'i วิ่งค่า 1,2,3,4,5 รวม 5 รอบ' },
+  { q:'int a=7,b=2; c=a/b; ค่า c คือเท่าใด?', opts:['3.5','3','4','3.0'], ans:1, exp:'int/int ตัดเศษทิ้ง: 7/2 = 3' },
+  { q:'int i=0; while(i<3){ i++; } เมื่อจบลูป i = ?', opts:['2','3','4','0'], ans:1, exp:'ลูปหยุดเมื่อ i=3 (เงื่อนไข i<3 เป็นเท็จ)' },
+  { q:'int x=5; y=x++; หลังบรรทัดนี้ x = ?', opts:['5','6','7','4'], ans:1, exp:'หลังใช้ค่าเดิมแล้ว x เพิ่มเป็น 6' },
+  { q:'do{...}while(cond); คำสั่งในลูปทำงานอย่างน้อยกี่ครั้ง?', opts:['0 ครั้ง','1 ครั้ง','2 ครั้ง','ไม่แน่นอน'], ans:1, exp:'do-while ทำงานก่อนตรวจเงื่อนไข จึงทำอย่างน้อย 1 ครั้งเสมอ' },
+  { q:'int p=2; for(int i=0;i<3;i++) p*=2; ค่า p สุดท้าย?', opts:['6','16','8','12'], ans:1, exp:'2→4→8→16 (คูณ 2 สามครั้ง)' },
+  { q:'10 % 3 ในการ trace ได้ค่าใด?', opts:['1','3','0','3.33'], ans:0, exp:'% คือเศษ: 10 หาร 3 เศษ 1' },
+  { q:'ความต่างของ ++x กับ x++ คือ?', opts:['++x เพิ่มก่อนใช้ค่า, x++ ใช้ค่าเดิมก่อนเพิ่ม','ทั้งคู่เหมือนกัน','++x ใช้กับ float เท่านั้น','x++ ทำให้เกิด error'], ans:0, exp:'prefix เพิ่มก่อน, postfix ใช้ค่าเดิมก่อนแล้วจึงเพิ่ม' },
+  { q:'int i=0; for(;i<3;i++){} ค่า i เมื่อออกจากลูปคือ?', opts:['3','2','0','4'], ans:0, exp:'ออกจากลูปเมื่อ i=3 ทำให้เงื่อนไข i<3 เป็นเท็จ' }
+];
+function reloadQuiz(seed){ LabCore.renderQuiz({ container:'#quiz', bank:QUIZ_BANK, count:5, seed:seed }); }
+reloadQuiz();
+(function(){
+  var rb=document.getElementById('qcRefresh');
+  if(rb) rb.addEventListener('click', function(){ reloadQuiz((document.getElementById('qcSeed').value||'').trim()||undefined); });
+  var si=document.getElementById('qcSeed');
+  if(si) si.addEventListener('keydown', function(e){ if(e.key==='Enter'){ reloadQuiz((e.target.value||'').trim()||undefined); } });
+})();
+LabCore.mountChallengeUI({ host:'#challengeHost', arenaId:'chArena', file:LAB_FILE, bank:QUIZ_BANK, count:8 });
+const quizEl = null;
+if(false)
 QUESTIONS.forEach((item)=>{
   const box = document.createElement('div');
   box.className = 'quiz-item';

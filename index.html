@@ -184,9 +184,19 @@ footer b{color:var(--navy-dark);}
 .adminCloseBtn{background:#f0f3fb;border:none;width:32px;height:32px;border-radius:50%;font-size:1rem;cursor:pointer;color:var(--navy-dark);flex-shrink:0;}
 .adminPreviewNote{background:#fff7e0;border:1px solid #f0dca0;color:#7a5b06;font-size:.78rem;line-height:1.7;padding:12px 14px;border-radius:10px;margin-bottom:16px;}
 .adminPreviewNote code{background:rgba(0,0,0,.08);padding:1px 6px;border-radius:5px;}
-.adminBulkRow{display:flex;gap:8px;margin-bottom:16px;}
-.bulkBtn{flex:1;background:#f5f7fc;border:1.5px solid #dfe4f0;color:var(--navy-dark);font-weight:700;font-size:.78rem;padding:9px;border-radius:10px;cursor:pointer;}
+.bulkBtn{background:#f5f7fc;border:1.5px solid #dfe4f0;color:var(--navy-dark);font-weight:700;font-size:.78rem;padding:9px 14px;border-radius:10px;cursor:pointer;}
 .bulkBtn:hover{background:#e6eaf6;}
+.levelControl{background:linear-gradient(135deg,#f5f7fc,#eef1f8);border:1.5px solid #dfe4f0;border-radius:14px;padding:16px 18px;margin-bottom:16px;}
+.levelControl .lcHead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+.levelControl .lcHead h4{margin:0;font-size:.9rem;color:var(--navy-dark);}
+.levelControl .lcLevel{font-weight:900;font-size:1.5rem;color:var(--navy);}
+.levelControl .lcSub{font-size:.74rem;color:var(--muted);margin:0 0 12px;line-height:1.6;}
+.levelControl input[type=range]{width:100%;accent-color:var(--navy);height:8px;}
+.levelControl .lcTicks{display:flex;justify-content:space-between;font-size:.66rem;color:var(--muted);font-weight:700;margin-top:4px;}
+.levelControl .lcRooms{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px;}
+.levelControl .lcRoom{font-size:.68rem;font-weight:700;padding:4px 9px;border-radius:12px;background:#e4e8f3;color:var(--muted);}
+.levelControl .lcRoom.on{background:var(--success);color:#fff;}
+.levelControl .lcQuick{display:flex;gap:6px;margin-top:12px;}
 
 .adminRow{border:1px solid #e4e8f3;border-radius:12px;padding:12px 14px;margin-bottom:10px;transition:.2s;}
 .adminRow.closedRow{opacity:.65;background:#fbfbfb;}
@@ -202,6 +212,9 @@ footer b{color:var(--navy-dark);}
 .adminRow .rExtra{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;}
 .adminRow .rExtra label{font-size:.72rem;font-weight:700;color:var(--navy-dark);display:flex;align-items:center;gap:5px;}
 .adminRow .rExtra input[type=text]{font-family:'Courier New',monospace;font-size:.78rem;padding:6px 9px;border-radius:7px;border:1.5px solid #dfe4f0;width:110px;}
+.roomState{font-size:.72rem;font-weight:800;padding:4px 12px;border-radius:14px;flex-shrink:0;}
+.roomState.on{background:var(--success-bg);color:var(--success);}
+.roomState.off{background:#f0f2f6;color:var(--muted);}
 
 .adminExport{margin-top:20px;border-top:1px dashed #dfe4f0;padding-top:16px;}
 .adminExport h4, .adminStats h4{margin:0 0 8px;font-size:.85rem;color:var(--navy-dark);}
@@ -224,7 +237,7 @@ footer b{color:var(--navy-dark);}
     <div class="heroTitle">
       <span class="kicker"><span class="dot"></span> INTERACTIVE LAB · เล่นได้จริงในเบราว์เซอร์</span>
       <h1>ห้องทดลองเสมือนจริง<br><span>พิชิตข้อสอบ กว. Computer Programming</span></h1>
-      <p>รวม 7 สื่อโต้ตอบที่แปลงหัวข้อยากให้กลายเป็นเกม ลองเปลี่ยนค่าตัวแปรจนเกิด Overflow ดูตารางทดค่าโค้ดแบบ step-by-step หรือพาหุ่นยนต์เดินตาม Flowchart ด้วยตัวเอง — ไม่ต้องติดตั้งอะไร กดลิงก์แล้วเล่นได้ทันที</p>
+      <p>รวม 7 สื่อโต้ตอบที่แปลงหัวข้อยากให้กลายเป็นเกมส์ ลองเปลี่ยนค่าตัวแปรจนเกิด Overflow ดูตารางทดค่าโค้ดแบบ step-by-step หรือพาหุ่นยนต์เดินตาม Flowchart ด้วยตัวเอง — ไม่ต้องติดตั้งอะไร กดลิงก์แล้วเล่นได้ทันที</p>
     </div>
     <div class="heroStats">
       <div class="statCard"><div class="num">7</div><div class="lbl">ห้องทดลอง</div></div>
@@ -257,9 +270,10 @@ footer b{color:var(--navy-dark);}
     <ol>
       <li><b>สำหรับผู้สอน:</b> เปิดไฟล์ที่ต้องการฉายบนโปรเจกเตอร์ระหว่างสอนได้ทุกช่วง — ทุกห้องมีปุ่มโต้ตอบ ให้นักศึกษาช่วยตอบหน้าชั้นได้เลย</li>
       <li><b>สำหรับนักศึกษา:</b> เปิดทบทวนด้วยตนเองก่อนสอบ แต่ละห้องมีแบบทดสอบท้ายบทพร้อมเฉลยทันที</li>
+      <li><b>ปลดล็อกด้วยการทำคะแนน:</b> ทำคะแนนใน "โหมดท้าทาย" ของแต่ละห้องให้ถึง 80% เพื่อปลดล็อกห้องถัดไปโดยอัตโนมัติ (ไล่จากห้อง 1 → 2 → 3 ...) — บันทึกความคืบหน้าไว้ในเบราว์เซอร์ของผู้เรียนเอง</li>
       <li><b>ออฟไลน์ได้:</b> ทุกไฟล์ทำงานได้โดยไม่ต้องต่ออินเทอร์เน็ต (ฟอนต์จะสลับเป็นฟอนต์ไทยของระบบโดยอัตโนมัติ)</li>
       <li><b>ความคืบหน้า:</b> ระบบจะจำห้องที่เคยเข้าชมไว้ในเบราว์เซอร์นี้ (ไม่มีการเก็บข้อมูลขึ้นเซิร์ฟเวอร์)</li>
-      <li><b>สำหรับผู้ดูแล:</b> กดไอคอนฟันเฟือง ⚙️ มุมขวาล่างของหน้าจอเพื่อเข้าสู่ระบบผู้ดูแล สามารถเปิด/ปิด/ล็อกห้องทดลองได้จากที่นี่</li>
+      <li><b>สำหรับผู้ดูแล:</b> กดไอคอนฟันเฟือง ⚙️ มุมขวาล่างเพื่อเข้าสู่ระบบผู้ดูแล เลื่อน "ระดับ" เพื่อเปิดห้องเพิ่มทีละขั้น (เปิดถึงระดับใด จะเปิดห้อง 1 ถึงระดับนั้นให้อัตโนมัติ) และตั้งล็อกด้วยรหัสรายห้องได้</li>
     </ol>
   </div>
 
@@ -295,10 +309,7 @@ footer b{color:var(--navy-dark);}
     </div>
     <div class="adminPreviewNote">👁️ <b>โหมดพรีวิว:</b> การเปลี่ยนแปลงที่นี่จะแสดงผลทันทีเฉพาะเบราว์เซอร์นี้เท่านั้น เพื่อให้มีผลกับผู้เข้าชม<b>ทุกคน</b> ต้องกด "คัดลอกโค้ด" ด้านล่าง แล้วนำไปแทนที่ในไฟล์ <code>labs-config.js</code> จากนั้น commit + push ขึ้น GitHub</div>
 
-    <div class="adminBulkRow" id="adminBulkRow">
-      <button class="bulkBtn" id="bulkOpenAll">✅ เปิดทุกห้อง</button>
-      <button class="bulkBtn" id="bulkCloseAll">🚧 ปิดทุกห้อง</button>
-    </div>
+    <div class="levelControl" id="levelControl"></div>
 
     <div class="adminTable" id="adminTable"></div>
 
@@ -319,6 +330,7 @@ footer b{color:var(--navy-dark);}
 </div>
 
 <script src="labs-config.js"></script>
+<script src="lab-core.js"></script>
 <script>
 const LABS = [
   {
@@ -382,14 +394,21 @@ function unlockLab(file){
 }
 function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
 
-const deployedConfig = (window.LAB_CONFIG && window.LAB_CONFIG.labs) ? window.LAB_CONFIG : { labs:{} };
+const deployedConfig = (window.LAB_CONFIG && window.LAB_CONFIG.labs) ? window.LAB_CONFIG : { unlockLevel:1, order:LABS.map(l=>l.file), labs:{} };
 let previewConfig = deepClone(deployedConfig);
 let currentFilter = 'all';
-// เผื่อกรณี labs-config.js โหลดไม่สำเร็จหรือขาดคีย์บางห้อง — ใช้ค่าเริ่มต้นเปิดฟรีเสมอ (fail-open)
+// เติมค่าเริ่มต้นเผื่อ config ขาดคีย์
+if(!previewConfig.labs) previewConfig.labs = {};
+if(!Array.isArray(previewConfig.order) || !previewConfig.order.length) previewConfig.order = LABS.map(l=>l.file);
+if(typeof previewConfig.unlockLevel !== 'number') previewConfig.unlockLevel = 1;
 LABS.forEach(l=>{
-  if(!previewConfig.labs) previewConfig.labs = {};
-  if(!previewConfig.labs[l.file]) previewConfig.labs[l.file] = { open:true, locked:false, code:'', price:'ฟรี' };
+  if(!previewConfig.labs[l.file]) previewConfig.labs[l.file] = { locked:false, code:'', price:'ฟรี' };
 });
+// ลำดับห้อง (เริ่มที่ 1) — ห้องเปิดเมื่อ ลำดับ <= ระดับที่ใช้จริง
+function orderOf(file){ return previewConfig.order.indexOf(file) + 1; }
+// ระดับที่ผู้เรียนเข้าถึงได้ = max(ระดับที่ผู้ดูแลตั้ง, ระดับที่ผู้เรียนปลดเองด้วยการทำคะแนน 80%)
+function studentUnlockLevel(){ var b = (window.LabCore ? LabCore.getLevelBoost() : 0) || 0; return Math.max(previewConfig.unlockLevel, b); }
+function isOpenAtPreview(file){ return orderOf(file) <= studentUnlockLevel(); }
 
 const STORAGE_KEY = 'gnr1007_lab_visited_v1';
 function getVisited(){
@@ -419,23 +438,25 @@ function renderGrid(filter){
   const unlocked = getUnlockedLabs();
   LABS.forEach((lab, i)=>{
     if(currentFilter!=='all' && lab.weight !== currentFilter) return;
-    const cfg = previewConfig.labs[lab.file] || {open:true, locked:false, code:'', price:'ฟรี'};
+    const cfg = previewConfig.labs[lab.file] || {locked:false, code:'', price:'ฟรี'};
+    const isOpen = isOpenAtPreview(lab.file);
+    const ord = orderOf(lab.file);
     const isUnlocked = unlocked.includes(lab.file);
     const card = document.createElement('div');
     let cls = 'labCard';
     if(visited.includes(lab.file)) cls += ' visited';
-    if(!cfg.open) cls += ' closedCard';
+    if(!isOpen) cls += ' closedCard';
     card.className = cls;
     card.dataset.file = lab.file;
     card.style.animationDelay = (i*0.08)+'s';
 
     const priceLabel = cfg.price || 'ฟรี';
     const priceTagHtml = `<span class="tag priceTag ${priceLabel!=='ฟรี' ? 'paid':''}">${priceLabel}</span>`;
-    const showLockBox = cfg.open && cfg.locked && !isUnlocked;
+    const showLockBox = isOpen && cfg.locked && !isUnlocked;
 
     let actionHtml;
-    if(!cfg.open){
-      actionHtml = `<span class="btnGo" style="background:var(--muted);cursor:not-allowed;opacity:.85">🚧 ปิดให้บริการชั่วคราว</span>`;
+    if(!isOpen){
+      actionHtml = `<span class="btnGo" style="background:var(--muted);cursor:not-allowed;opacity:.85;font-size:.8rem">🔒 ทำคะแนน 80% ในห้องก่อนหน้าเพื่อปลดล็อก</span>`;
     } else if(showLockBox){
       actionHtml = `<span class="btnGo" style="background:#c9a227;cursor:default">🔒 กรอกรหัสด้านบนเพื่อเข้าใช้งาน</span>`;
     } else {
@@ -445,8 +466,8 @@ function renderGrid(filter){
     card.innerHTML = `
       <div class="top">
         <span class="visited">✔ เข้าชมแล้ว</span>
-        ${!cfg.open ? '<span class="closedBanner">ปิดให้บริการ</span>' : ''}
-        <div class="chapterTag">${lab.chapter} · สอน${lab.session}</div>
+        ${!isOpen ? '<span class="closedBanner">ห้องที่ '+ord+' · ยังไม่เปิด</span>' : ''}
+        <div class="chapterTag">ห้องที่ ${ord} · ${lab.chapter} · สอน${lab.session}</div>
         <div class="icon">${lab.icon}</div>
         <h3 class="title">${lab.title}</h3>
       </div>
@@ -472,7 +493,7 @@ function renderGrid(filter){
       </div>
     `;
 
-    if(cfg.open && (!cfg.locked || isUnlocked)){
+    if(isOpen && (!cfg.locked || isUnlocked)){
       card.querySelector('.btnGo').addEventListener('click', ()=> markVisited(lab.file));
     }
     if(showLockBox){
@@ -520,8 +541,8 @@ document.getElementById('filterChips').addEventListener('click', (e)=>{
 });
 
 document.getElementById('btnRandom').addEventListener('click', ()=>{
-  const openLabs = LABS.filter(l => previewConfig.labs[l.file].open);
-  const pool = openLabs.length ? openLabs : LABS;
+  const openLabs = LABS.filter(l => isOpenAtPreview(l.file));
+  const pool = openLabs.length ? openLabs : [LABS[0]];
   const pick = pool[Math.floor(Math.random()*pool.length)];
   markVisited(pick.file);
   window.open(pick.file, '_blank', 'noopener');
@@ -567,19 +588,19 @@ document.getElementById('logoutBtn').addEventListener('click', ()=>{
   closeAdminDrawer();
   refreshGearState();
 });
-document.getElementById('bulkOpenAll').addEventListener('click', ()=>{
-  LABS.forEach(l=> previewConfig.labs[l.file].open = true);
-  renderAdminTable(); renderGrid(currentFilter);
-});
-document.getElementById('bulkCloseAll').addEventListener('click', ()=>{
-  LABS.forEach(l=> previewConfig.labs[l.file].open = false);
-  renderAdminTable(); renderGrid(currentFilter);
-});
+function setPreviewLevel(n){
+  previewConfig.unlockLevel = Math.max(0, Math.min(LABS.length, n));
+  renderLevelControl();
+  refreshExportBox(); refreshStats();
+  renderGrid(currentFilter);
+}
 document.getElementById('resetStatsBtn').addEventListener('click', ()=>{
-  if(confirm('ล้างสถิติการเข้าชมของเบราว์เซอร์นี้?')){
+  if(confirm('ล้างสถิติการเข้าชม + ความคืบหน้าการปลดล็อกด้วยคะแนนของเบราว์เซอร์นี้?')){
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem('gnr1007_level_boost_v1'); // รีเซ็ตการปลดล็อกด้วยคะแนน
     updateProgress();
     refreshStats();
+    renderGrid(currentFilter);
   }
 });
 document.getElementById('copyExportBtn').addEventListener('click', ()=>{
@@ -595,11 +616,12 @@ document.getElementById('copyExportBtn').addEventListener('click', ()=>{
 });
 
 function generateConfigCode(cfg){
-  const lines = LABS.map(lab=>{
+  const orderLines = LABS.map((lab,i)=>`    '${lab.file}'${i<LABS.length-1?',':' '} // ${i+1}`).join('\n');
+  const labLines = LABS.map(lab=>{
     const c = cfg.labs[lab.file];
-    return `    '${lab.file}': { open: ${!!c.open}, locked: ${!!c.locked}, code: ${JSON.stringify(c.code||'')}, price: ${JSON.stringify(c.price||'ฟรี')} },`;
+    return `    '${lab.file}': { locked: ${!!c.locked}, code: ${JSON.stringify(c.code||'')}, price: ${JSON.stringify(c.price||'ฟรี')} },`;
   }).join('\n');
-  return `window.LAB_CONFIG = {\n  version: 1,\n  updatedNote: 'อัปเดตผ่านแผงควบคุมผู้ดูแล เมื่อ ${new Date().toLocaleString('th-TH')}',\n  labs: {\n${lines}\n  }\n};`;
+  return `window.LAB_CONFIG = {\n  version: 2,\n  updatedNote: 'อัปเดตผ่านแผงควบคุมผู้ดูแล เมื่อ ${new Date().toLocaleString('th-TH')}',\n  unlockLevel: ${cfg.unlockLevel},\n  order: [\n${orderLines}\n  ],\n  labs: {\n${labLines}\n  }\n};`;
 }
 function refreshExportBox(){
   const box = document.getElementById('exportBox');
@@ -609,8 +631,28 @@ function refreshStats(){
   const el = document.getElementById('statsText');
   if(!el) return;
   const v = getVisited();
-  const openCount = LABS.filter(l=>previewConfig.labs[l.file].open).length;
-  el.textContent = `เข้าชมแล้ว ${v.length}/${LABS.length} ห้อง (สะสมของเบราว์เซอร์นี้) | ขณะนี้เปิดใช้งานอยู่ ${openCount}/${LABS.length} ห้อง (ตามพรีวิวปัจจุบัน)`;
+  const openCount = LABS.filter(l=>isOpenAtPreview(l.file)).length;
+  el.textContent = `เข้าชมแล้ว ${v.length}/${LABS.length} ห้อง (สะสมของเบราว์เซอร์นี้) | ขณะนี้เปิดถึงห้องที่ ${previewConfig.unlockLevel} = ${openCount}/${LABS.length} ห้อง (ตามพรีวิวปัจจุบัน)`;
+}
+
+function renderLevelControl(){
+  const el = document.getElementById('levelControl');
+  if(!el) return;
+  const lv = previewConfig.unlockLevel;
+  const rooms = LABS.map((lab,i)=>`<span class="lcRoom ${(i+1)<=lv?'on':''}">${i+1}</span>`).join('');
+  el.innerHTML = `
+    <div class="lcHead"><h4>ระดับที่เปิดให้เข้าใช้งาน (Unlock Level)</h4><span class="lcLevel">${lv}</span></div>
+    <p class="lcSub">เลื่อนเพื่อกำหนดว่าเปิดถึงห้องที่เท่าใด — เปิดถึงระดับใด จะเปิดห้อง 1 ถึงระดับนั้นให้อัตโนมัติ (เช่น ระดับ 5 = เปิดห้อง 1-5)</p>
+    <input type="range" id="levelSlider" min="0" max="${LABS.length}" step="1" value="${lv}">
+    <div class="lcTicks">${LABS.map((_,i)=>`<span>${i+1}</span>`).join('')}</div>
+    <div class="lcRooms">${rooms}</div>
+    <div class="lcQuick">
+      <button class="bulkBtn" id="lvOnlyFirst">เปิดเฉพาะห้อง 1</button>
+      <button class="bulkBtn" id="lvAll">เปิดครบทุกห้อง</button>
+    </div>`;
+  el.querySelector('#levelSlider').addEventListener('input', (e)=> setPreviewLevel(parseInt(e.target.value,10)));
+  el.querySelector('#lvOnlyFirst').addEventListener('click', ()=> setPreviewLevel(1));
+  el.querySelector('#lvAll').addEventListener('click', ()=> setPreviewLevel(LABS.length));
 }
 
 function renderAdminTable(){
@@ -619,50 +661,46 @@ function renderAdminTable(){
   const exportSection = document.getElementById('adminExportSection');
   const statsSection = document.getElementById('adminStatsSection');
   const roleTag = document.getElementById('adminRoleTag');
+  const isAdmin = (role === 'admin');
 
-  if(role === 'admin'){
+  if(isAdmin){
     roleTag.textContent = 'ผู้ดูแลระบบ (สิทธิ์เต็ม)';
     statsSection.style.display='block';
   } else {
-    roleTag.textContent = 'ผู้ช่วยสอน (อ.พิชัย) — เปิด/ปิดห้องได้อย่างเดียว';
+    roleTag.textContent = 'ผู้ช่วยสอน (อ.พิชัย) — ปรับระดับที่เปิดได้อย่างเดียว';
     statsSection.style.display='none';
   }
   exportSection.style.display='block';
 
+  renderLevelControl();
+
   tableEl.innerHTML = '';
-  LABS.forEach(lab=>{
+  // ตารางรายห้อง: ผู้ดูแลเต็มตั้งล็อกรหัส/ราคาได้ | อ.พิชัย เห็นสถานะอย่างเดียว
+  LABS.forEach((lab,i)=>{
     const cfg = previewConfig.labs[lab.file];
+    const ord = i+1;
+    const isOpen = ord <= previewConfig.unlockLevel;
     const row = document.createElement('div');
-    row.className = 'adminRow' + (!cfg.open ? ' closedRow' : '');
+    row.className = 'adminRow' + (!isOpen ? ' closedRow' : '');
     row.innerHTML = `
       <div class="rTop">
         <div>
-          <div class="rTitle">${lab.icon} ${lab.title}</div>
-          <div class="rChapter">${lab.chapter} · ${lab.file}</div>
+          <div class="rTitle">ห้อง ${ord} · ${lab.icon} ${lab.title}</div>
+          <div class="rChapter">${lab.chapter} · ${isOpen ? 'เปิดอยู่' : 'ยังไม่เปิด (ต้องเลื่อนระดับถึง '+ord+')'}${cfg.locked ? ' · ล็อกรหัส '+(cfg.price||'') : ''}</div>
         </div>
-        <label class="switch">
-          <input type="checkbox" class="openToggle" ${cfg.open ? 'checked' : ''}>
-          <span class="slider"></span>
-        </label>
+        <span class="roomState ${isOpen?'on':'off'}">${isOpen ? 'เปิด' : 'ปิด'}</span>
       </div>
-      ${role==='admin' ? `
+      ${isAdmin ? `
       <div class="rExtra">
-        <label><input type="checkbox" class="lockToggle" ${cfg.locked?'checked':''}> ล็อกด้วยรหัส</label>
+        <label><input type="checkbox" class="lockToggle" ${cfg.locked?'checked':''}> ล็อกด้วยรหัส (สร้างรายได้)</label>
         <input type="text" class="codeInput" placeholder="รหัสปลดล็อก" value="${cfg.code||''}">
-        <input type="text" class="priceInput" placeholder="ป้ายราคา" value="${cfg.price||''}">
+        <input type="text" class="priceInput" placeholder="ป้ายราคา เช่น ฿199" value="${cfg.price||''}">
       </div>` : ''}
     `;
-    row.querySelector('.openToggle').addEventListener('change', (e)=>{
-      previewConfig.labs[lab.file].open = e.target.checked;
-      row.classList.toggle('closedRow', !e.target.checked);
-      refreshExportBox(); refreshStats();
-      renderGrid(currentFilter);
-    });
-    if(role==='admin'){
+    if(isAdmin){
       row.querySelector('.lockToggle').addEventListener('change', (e)=>{
         previewConfig.labs[lab.file].locked = e.target.checked;
-        refreshExportBox();
-        renderGrid(currentFilter);
+        refreshExportBox(); renderGrid(currentFilter); renderAdminTable();
       });
       row.querySelector('.codeInput').addEventListener('input', (e)=>{
         previewConfig.labs[lab.file].code = e.target.value;
@@ -670,8 +708,7 @@ function renderAdminTable(){
       });
       row.querySelector('.priceInput').addEventListener('input', (e)=>{
         previewConfig.labs[lab.file].price = e.target.value;
-        refreshExportBox();
-        renderGrid(currentFilter);
+        refreshExportBox(); renderGrid(currentFilter);
       });
     }
     tableEl.appendChild(row);

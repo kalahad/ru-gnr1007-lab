@@ -117,40 +117,8 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;lin
   </div>
 </div>
 <script src="labs-config.js"></script>
-<script>
-(function(){
-  var FILE = 'sim_sort.html';
-  function getCfg(){
-    try{ return (window.LAB_CONFIG && window.LAB_CONFIG.labs && window.LAB_CONFIG.labs[FILE]) || {open:true, locked:false}; }catch(e){ return {open:true, locked:false}; }
-  }
-  function getUnlocked(){ try{ return JSON.parse(localStorage.getItem('gnr1007_unlocked_v1')||'[]'); }catch(e){ return []; } }
-  function unlock(){ try{ var u=getUnlocked(); if(u.indexOf(FILE)===-1){ u.push(FILE); localStorage.setItem('gnr1007_unlocked_v1', JSON.stringify(u)); } }catch(e){} }
-  var cfg = getCfg();
-  var gate = document.getElementById('labGate');
-  if(!cfg.open){
-    gate.style.display='flex';
-    document.getElementById('labGateIcon').textContent='🚧';
-    document.getElementById('labGateTitle').textContent='ห้องนี้ปิดให้บริการชั่วคราว';
-    document.getElementById('labGateMsg').textContent='ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว กรุณาติดต่อผู้สอน หรือกลับไปเลือกห้องอื่น';
-  } else if(cfg.locked && getUnlocked().indexOf(FILE)===-1){
-    gate.style.display='flex';
-    document.getElementById('labGateIcon').textContent='🔒';
-    document.getElementById('labGateTitle').textContent='ห้องทดลองนี้ต้องใช้รหัสเข้าใช้งาน';
-    document.getElementById('labGateMsg').textContent = cfg.price ? ('ระดับการเข้าถึง: '+cfg.price+' — กรอกรหัสที่ได้รับจากผู้สอน') : 'กรอกรหัสที่ได้รับจากผู้สอนเพื่อเข้าใช้งาน';
-    document.getElementById('labGateCodeBox').style.display='block';
-    document.getElementById('labGateUnlockBtn').addEventListener('click', function(){
-      var v = document.getElementById('labGateCodeInput').value.trim();
-      if(v && cfg.code && v.toLowerCase() === String(cfg.code).toLowerCase()){
-        unlock();
-        gate.style.display='none';
-      } else {
-        document.getElementById('labGateCodeErr').style.display='block';
-      }
-    });
-    document.getElementById('labGateCodeInput').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('labGateUnlockBtn').click(); });
-  }
-})();
-</script>
+<script src="lab-core.js"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){ LabCore.initGate('sim_sort.html'); });</script>
 <header class="top">
   <img src="eng_ru_logo.png" alt="โลโก้ วิศวกรรมศาสตร์ ม.รามคำแหง" onerror="this.style.display='none'">
   <div class="ttl">
@@ -239,7 +207,17 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;lin
 
   <div class="card">
     <h2>ทดสอบความเข้าใจ</h2>
+    <div class="quizControls">
+      <button class="qcBtn" id="qcRefresh">🔀 สุ่มโจทย์ชุดใหม่</button>
+      <input class="qcSeed" id="qcSeed" placeholder="seed (ไม่บังคับ)" autocomplete="off">
+      <span class="qcHint">ใส่ seed เดียวกันเพื่อได้ชุดโจทย์เดิม (เหมาะเวลาเฉลยหน้าชั้น)</span>
+    </div>
     <div id="quiz"></div>
+  </div>
+
+  <div class="card">
+    <h2>โหมดท้าทาย — จับเวลา 1.8 นาที/ข้อ (แบบสอบ กว.)</h2>
+    <div id="challengeHost"></div>
   </div>
 
 </div>
@@ -354,7 +332,13 @@ document.getElementById('btnAutoSort').addEventListener('click', ()=>{
   const loop = ()=>{ if(sortDone){ stopAutoSort(); return; } stepSort(); sortAutoTimer = setTimeout(loop, speed()); };
   sortAutoTimer = setTimeout(loop, speed());
 });
-buildSort();
+(function(){ /* layer-3: สุ่มชุดข้อมูลตอนโหลด (ไม่ซ้ำเดิม) */
+  var R=LabCore.makeRng(String(Date.now())+Math.random());
+  var n=LabCore.randInt(R,5,7), vals=[];
+  for(var i=0;i<n;i++) vals.push(LabCore.randInt(R,1,20));
+  var el=document.getElementById('arrInput'); if(el) el.value=vals.join(',');
+  buildSort();
+})();
 
 /* ================= Stack ================= */
 let stack = [];
@@ -442,7 +426,33 @@ const QUESTIONS = [
     exp: 'ถูกต้อง — รอบแรก: เทียบ 5,2→สลับ[2,5,8,1] เทียบ5,8→ไม่สลับ[2,5,8,1] เทียบ8,1→สลับ[2,5,1,8] ผลลัพธ์คือ [2,5,1,8]'
   }
 ];
-const quizEl = document.getElementById('quiz');
+/* ===== LabCore quiz + Challenge Mode wiring ===== */
+const LAB_FILE = 'sim_sort.html';
+const QUIZ_BANK = [
+  { q:'Bubble Sort เปรียบเทียบข้อมูลอย่างไร?', opts:['คู่ที่อยู่ติดกันเรียงไปเรื่อยๆ','สุ่ม 2 ตัวใดก็ได้','ตัวแรกกับทุกตัว','แบ่งครึ่งแล้วเทียบ'], ans:0, exp:'Bubble Sort เทียบสมาชิกที่อยู่ติดกัน (arr[j] กับ arr[j+1])' },
+  { q:'โครงสร้าง Stack ทำงานตามหลักการใด?', opts:['FIFO','LIFO','เรียงอัตโนมัติ','สุ่ม'], ans:1, exp:'Stack เป็น LIFO (Last In First Out) เหมือนกองจาน' },
+  { q:'โครงสร้าง Queue ทำงานตามหลักการใด?', opts:['LIFO','FIFO','มากไปน้อย','สุ่ม'], ans:1, exp:'Queue เป็น FIFO (First In First Out) เหมือนแถวคิว' },
+  { q:'[5,2,8,1] หลัง Bubble Sort รอบแรกได้ผลใด?', opts:['[1,2,5,8]','[2,5,1,8]','[5,2,8,1]','[8,5,2,1]'], ans:1, exp:'รอบแรก: [2,5,8,1]→[2,5,1,8] ค่ามากสุด (8) ลอยไปท้าย' },
+  { q:'อาร์เรย์ n ตัว Bubble Sort ใช้จำนวนรอบสูงสุดกี่รอบ?', opts:['n','n-1','n+1','2n'], ans:1, exp:'จำนวนรอบสูงสุด = n-1 รอบ' },
+  { q:'การนำข้อมูลออกจาก Stack เรียกว่าอะไร?', opts:['Push','Pop','Enqueue','Dequeue'], ans:1, exp:'นำออกจาก Stack = Pop (นำเข้า = Push)' },
+  { q:'การนำข้อมูลเข้า Queue เรียกว่าอะไร?', opts:['Push','Pop','Enqueue','Dequeue'], ans:2, exp:'นำเข้า Queue = Enqueue (นำออก = Dequeue)' },
+  { q:'ตัวอย่างการใช้งาน Stack ในชีวิตจริงคือ?', opts:['กองจาน / ปุ่ม Undo','แถวต่อคิวซื้อของ','คิวพิมพ์เอกสาร','สายพานลำเลียง'], ans:0, exp:'Stack (LIFO) เช่น กองจาน หรือปุ่ม Undo ที่ย้อนงานล่าสุดก่อน' },
+  { q:'[3,1,2] หลัง Bubble Sort รอบแรก (น้อยไปมาก) ได้?', opts:['[1,2,3]','[1,3,2]','[3,1,2]','[2,1,3]'], ans:0, exp:'เทียบ 3,1 สลับ→[1,3,2]; เทียบ 3,2 สลับ→[1,2,3]' },
+  { q:'Stack ที่ Pop ขณะว่างเปล่าจะเกิดภาวะใด?', opts:['Stack Underflow','Stack Overflow','วนกลับ','ไม่มีผล'], ans:0, exp:'Pop ตอนว่างเปล่าเกิด Stack Underflow' },
+  { q:'ข้อใดใช้หลักการ FIFO?', opts:['คิวรอชำระเงินหน้าเคาน์เตอร์','กองหนังสือซ้อนกัน','ปุ่ม Undo','การเรียกฟังก์ชันซ้อน'], ans:0, exp:'คิวชำระเงิน = FIFO คนมาก่อนได้ก่อน' },
+  { q:'Bubble Sort ค่ามากสุดจะไปอยู่ที่ใดหลังรอบแรก?', opts:['ตำแหน่งท้ายสุดของอาร์เรย์','ตำแหน่งแรก','ตรงกลาง','ไม่ขยับ'], ans:0, exp:'ค่ามากสุด "ลอย" ไปอยู่ท้ายอาร์เรย์หลังจบรอบแรก' }
+];
+function reloadQuiz(seed){ LabCore.renderQuiz({ container:'#quiz', bank:QUIZ_BANK, count:5, seed:seed }); }
+reloadQuiz();
+(function(){
+  var rb=document.getElementById('qcRefresh');
+  if(rb) rb.addEventListener('click', function(){ reloadQuiz((document.getElementById('qcSeed').value||'').trim()||undefined); });
+  var si=document.getElementById('qcSeed');
+  if(si) si.addEventListener('keydown', function(e){ if(e.key==='Enter'){ reloadQuiz((e.target.value||'').trim()||undefined); } });
+})();
+LabCore.mountChallengeUI({ host:'#challengeHost', arenaId:'chArena', file:LAB_FILE, bank:QUIZ_BANK, count:8 });
+const quizEl = null;
+if(false)
 QUESTIONS.forEach((item)=>{
   const box = document.createElement('div');
   box.className = 'quiz-item';

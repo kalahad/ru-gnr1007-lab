@@ -111,40 +111,8 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;lin
   </div>
 </div>
 <script src="labs-config.js"></script>
-<script>
-(function(){
-  var FILE = 'sim_overflow.html';
-  function getCfg(){
-    try{ return (window.LAB_CONFIG && window.LAB_CONFIG.labs && window.LAB_CONFIG.labs[FILE]) || {open:true, locked:false}; }catch(e){ return {open:true, locked:false}; }
-  }
-  function getUnlocked(){ try{ return JSON.parse(localStorage.getItem('gnr1007_unlocked_v1')||'[]'); }catch(e){ return []; } }
-  function unlock(){ try{ var u=getUnlocked(); if(u.indexOf(FILE)===-1){ u.push(FILE); localStorage.setItem('gnr1007_unlocked_v1', JSON.stringify(u)); } }catch(e){} }
-  var cfg = getCfg();
-  var gate = document.getElementById('labGate');
-  if(!cfg.open){
-    gate.style.display='flex';
-    document.getElementById('labGateIcon').textContent='🚧';
-    document.getElementById('labGateTitle').textContent='ห้องนี้ปิดให้บริการชั่วคราว';
-    document.getElementById('labGateMsg').textContent='ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว กรุณาติดต่อผู้สอน หรือกลับไปเลือกห้องอื่น';
-  } else if(cfg.locked && getUnlocked().indexOf(FILE)===-1){
-    gate.style.display='flex';
-    document.getElementById('labGateIcon').textContent='🔒';
-    document.getElementById('labGateTitle').textContent='ห้องทดลองนี้ต้องใช้รหัสเข้าใช้งาน';
-    document.getElementById('labGateMsg').textContent = cfg.price ? ('ระดับการเข้าถึง: '+cfg.price+' — กรอกรหัสที่ได้รับจากผู้สอน') : 'กรอกรหัสที่ได้รับจากผู้สอนเพื่อเข้าใช้งาน';
-    document.getElementById('labGateCodeBox').style.display='block';
-    document.getElementById('labGateUnlockBtn').addEventListener('click', function(){
-      var v = document.getElementById('labGateCodeInput').value.trim();
-      if(v && cfg.code && v.toLowerCase() === String(cfg.code).toLowerCase()){
-        unlock();
-        gate.style.display='none';
-      } else {
-        document.getElementById('labGateCodeErr').style.display='block';
-      }
-    });
-    document.getElementById('labGateCodeInput').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('labGateUnlockBtn').click(); });
-  }
-})();
-</script>
+<script src="lab-core.js"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){ LabCore.initGate('sim_overflow.html'); });</script>
 <header class="top">
   <img src="eng_ru_logo.png" alt="โลโก้ วิศวกรรมศาสตร์ ม.รามคำแหง" onerror="this.style.display='none'">
   <div class="ttl">
@@ -210,7 +178,17 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;lin
 
   <div class="card">
     <h2>ทดสอบความเข้าใจ</h2>
+    <div class="quizControls">
+      <button class="qcBtn" id="qcRefresh">🔀 สุ่มโจทย์ชุดใหม่</button>
+      <input class="qcSeed" id="qcSeed" placeholder="seed (ไม่บังคับ)" autocomplete="off">
+      <span class="qcHint">ใส่ seed เดียวกันเพื่อได้ชุดโจทย์เดิม (เหมาะเวลาเฉลยหน้าชั้น)</span>
+    </div>
     <div id="quiz"></div>
+  </div>
+
+  <div class="card">
+    <h2>โหมดท้าทาย — จับเวลา 1.8 นาที/ข้อ (แบบสอบ กว.)</h2>
+    <div id="challengeHost"></div>
   </div>
 
 </div>
@@ -344,7 +322,33 @@ const QUESTIONS = [
   }
 ];
 
-const quizEl = document.getElementById('quiz');
+/* ===== LabCore quiz + Challenge Mode wiring ===== */
+const LAB_FILE = 'sim_overflow.html';
+const QUIZ_BANK = [
+  { q:'ตัวแปร signed char เก็บค่าได้สูงสุดเท่าใด?', opts:['127','128','255','256'], ans:0, exp:'char 8 บิต ใช้ 1 บิตเป็นเครื่องหมาย เหลือ 7 บิต จึงเก็บค่าบวกสูงสุด 127' },
+  { q:'signed char เก็บค่า 127 แล้วบวก 1 ผลลัพธ์คือ?', opts:['128','-128','0','127'], ans:1, exp:'Overflow วนกลับไปค่าต่ำสุด -128' },
+  { q:'unsigned char ต่างจาก signed char อย่างไร?', opts:['ไม่มีบิตเครื่องหมาย เก็บได้ 0-255','มีขนาด 2 byte','เก็บค่าลบได้มากกว่า','เหมือนกันทุกประการ'], ans:0, exp:'unsigned char ใช้ทั้ง 8 บิตแทนค่าบวก จึงเก็บ 0-255' },
+  { q:'unsigned char เก็บค่า 255 แล้วบวก 1 ได้เท่าใด?', opts:['256','0','-1','255'], ans:1, exp:'เกิน max (255) วนกลับไป min (0)' },
+  { q:'signed char เก็บค่า -128 แล้วลบ 1 ได้เท่าใด?', opts:['-129','127','0','-128'], ans:1, exp:'Underflow ต่ำกว่า min (-128) วนกลับไป max (127)' },
+  { q:'unsigned char เก็บค่า 0 แล้วลบ 1 ได้เท่าใด?', opts:['-1','255','0','256'], ans:1, exp:'unsigned เก็บค่าลบไม่ได้ วนกลับไป max (255)' },
+  { q:'ตัวแปร char มีขนาดกี่ไบต์?', opts:['1 ไบต์ (8 บิต)','2 ไบต์','4 ไบต์','8 ไบต์'], ans:0, exp:'char = 1 byte = 8 bit เสมอ' },
+  { q:'เหตุใด signed char เก็บค่าบวกได้แค่ 127 ไม่ใช่ 255?', opts:['ใช้ 1 บิตเป็นบิตเครื่องหมาย เหลือ 7 บิต','char เสีย 1 บิตให้ null','compiler จำกัดไว้','RAM ไม่พอ'], ans:0, exp:'บิตซ้ายสุดเป็น sign bit เหลือ 7 บิตแทนขนาด (0-127)' },
+  { q:'กำหนดค่า 200 ให้ signed char จะได้ค่าใด?', opts:['200','-56','127','-128'], ans:1, exp:'200 เกิน 127 → 200-256 = -56' },
+  { q:'ช่วงค่าของ signed char คือข้อใด?', opts:['-128 ถึง 127','0 ถึง 255','-127 ถึง 128','0 ถึง 127'], ans:0, exp:'signed char เก็บได้ -128 ถึง 127' },
+  { q:'int (4 ไบต์ แบบทั่วไป) เก็บค่าได้ช่วงประมาณเท่าใด?', opts:['-2,147,483,648 ถึง 2,147,483,647','0 ถึง 255','-32768 ถึง 32767','-128 ถึง 127'], ans:0, exp:'int 32 บิต เก็บได้ประมาณ -2.1 พันล้าน ถึง 2.1 พันล้าน' },
+  { q:'การที่ค่าเกินขอบเขตแล้ว "วนกลับ" เรียกว่าอะไร?', opts:['Overflow / Underflow','Segmentation fault','Syntax error','Memory leak'], ans:0, exp:'ค่าเกิน max เรียก Overflow, ต่ำกว่า min เรียก Underflow' }
+];
+function reloadQuiz(seed){ LabCore.renderQuiz({ container:'#quiz', bank:QUIZ_BANK, count:5, seed:seed }); }
+reloadQuiz();
+(function(){
+  var rb=document.getElementById('qcRefresh');
+  if(rb) rb.addEventListener('click', function(){ reloadQuiz((document.getElementById('qcSeed').value||'').trim()||undefined); });
+  var si=document.getElementById('qcSeed');
+  if(si) si.addEventListener('keydown', function(e){ if(e.key==='Enter'){ reloadQuiz((e.target.value||'').trim()||undefined); } });
+})();
+LabCore.mountChallengeUI({ host:'#challengeHost', arenaId:'chArena', file:LAB_FILE, bank:QUIZ_BANK, count:8 });
+const quizEl = null;
+if(false)
 QUESTIONS.forEach((item)=>{
   const box = document.createElement('div');
   box.className = 'quiz-item';

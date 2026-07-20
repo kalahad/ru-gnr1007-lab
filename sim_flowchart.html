@@ -126,40 +126,8 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;lin
   </div>
 </div>
 <script src="labs-config.js"></script>
-<script>
-(function(){
-  var FILE = 'sim_flowchart.html';
-  function getCfg(){
-    try{ return (window.LAB_CONFIG && window.LAB_CONFIG.labs && window.LAB_CONFIG.labs[FILE]) || {open:true, locked:false}; }catch(e){ return {open:true, locked:false}; }
-  }
-  function getUnlocked(){ try{ return JSON.parse(localStorage.getItem('gnr1007_unlocked_v1')||'[]'); }catch(e){ return []; } }
-  function unlock(){ try{ var u=getUnlocked(); if(u.indexOf(FILE)===-1){ u.push(FILE); localStorage.setItem('gnr1007_unlocked_v1', JSON.stringify(u)); } }catch(e){} }
-  var cfg = getCfg();
-  var gate = document.getElementById('labGate');
-  if(!cfg.open){
-    gate.style.display='flex';
-    document.getElementById('labGateIcon').textContent='🚧';
-    document.getElementById('labGateTitle').textContent='ห้องนี้ปิดให้บริการชั่วคราว';
-    document.getElementById('labGateMsg').textContent='ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว กรุณาติดต่อผู้สอน หรือกลับไปเลือกห้องอื่น';
-  } else if(cfg.locked && getUnlocked().indexOf(FILE)===-1){
-    gate.style.display='flex';
-    document.getElementById('labGateIcon').textContent='🔒';
-    document.getElementById('labGateTitle').textContent='ห้องทดลองนี้ต้องใช้รหัสเข้าใช้งาน';
-    document.getElementById('labGateMsg').textContent = cfg.price ? ('ระดับการเข้าถึง: '+cfg.price+' — กรอกรหัสที่ได้รับจากผู้สอน') : 'กรอกรหัสที่ได้รับจากผู้สอนเพื่อเข้าใช้งาน';
-    document.getElementById('labGateCodeBox').style.display='block';
-    document.getElementById('labGateUnlockBtn').addEventListener('click', function(){
-      var v = document.getElementById('labGateCodeInput').value.trim();
-      if(v && cfg.code && v.toLowerCase() === String(cfg.code).toLowerCase()){
-        unlock();
-        gate.style.display='none';
-      } else {
-        document.getElementById('labGateCodeErr').style.display='block';
-      }
-    });
-    document.getElementById('labGateCodeInput').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('labGateUnlockBtn').click(); });
-  }
-})();
-</script>
+<script src="lab-core.js"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){ LabCore.initGate('sim_flowchart.html'); });</script>
 <header class="top">
   <img src="eng_ru_logo.png" alt="โลโก้ วิศวกรรมศาสตร์ ม.รามคำแหง" onerror="this.style.display='none'">
   <div class="ttl">
@@ -222,7 +190,17 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;lin
 
   <div class="card">
     <h2>ทดสอบความเข้าใจ</h2>
+    <div class="quizControls">
+      <button class="qcBtn" id="qcRefresh">🔀 สุ่มโจทย์ชุดใหม่</button>
+      <input class="qcSeed" id="qcSeed" placeholder="seed (ไม่บังคับ)" autocomplete="off">
+      <span class="qcHint">ใส่ seed เดียวกันเพื่อได้ชุดโจทย์เดิม (เหมาะเวลาเฉลยหน้าชั้น)</span>
+    </div>
     <div id="quiz"></div>
+  </div>
+
+  <div class="card">
+    <h2>โหมดท้าทาย — จับเวลา 1.8 นาที/ข้อ (แบบสอบ กว.)</h2>
+    <div id="challengeHost"></div>
   </div>
 
 </div>
@@ -449,7 +427,31 @@ const QUESTIONS = [
     exp: 'ถูกต้อง — มีเพียง Decision เท่านั้นที่แตกทางออกได้ (โดยทั่วไป 2 ทาง) ส่วน Process มีทางออกทางเดียวเสมอ'
   }
 ];
-const quizEl = document.getElementById('quiz');
+/* ===== LabCore quiz + Challenge Mode wiring ===== */
+const LAB_FILE = 'sim_flowchart.html';
+const QUIZ_BANK = [
+  { q:'สัญลักษณ์สี่เหลี่ยมข้าวหลามตัด (Diamond) หมายถึง?', opts:['จุดเริ่ม/จบ','ประมวลผลทั่วไป','การตัดสินใจ (2 ทางออก)','นำเข้า/แสดงผล'], ans:2, exp:'Diamond ใช้แทนจุดตัดสินใจที่มีทางออก 2 ทาง (จริง/เท็จ)' },
+  { q:'สัญลักษณ์วงรี (Oval) ใช้แทนอะไร?', opts:['จุดเริ่มต้น/สิ้นสุด','การคำนวณ','การวนซ้ำ','การตัดสินใจ'], ans:0, exp:'วงรีใช้แทน Start/End ของผังงาน' },
+  { q:'สัญลักษณ์ใดมีทางออกมากกว่า 1 ทาง?', opts:['สี่เหลี่ยมผืนผ้า','วงรี','สี่เหลี่ยมข้าวหลามตัด','ลูกศร'], ans:2, exp:'มีเพียง Decision (ข้าวหลามตัด) ที่แตกทางออกได้' },
+  { q:'สี่เหลี่ยมผืนผ้า (Rectangle) ใช้แทนอะไร?', opts:['การประมวลผล/คำสั่งทั่วไป','การตัดสินใจ','จุดเริ่มต้น','การเชื่อมต่อหน้า'], ans:0, exp:'Rectangle = Process (การประมวลผล) มีทางออกทางเดียว' },
+  { q:'สัญลักษณ์สี่เหลี่ยมด้านขนาน (Parallelogram) ใช้แทน?', opts:['การรับเข้า/แสดงผลข้อมูล (I/O)','การตัดสินใจ','จุดจบ','การวนซ้ำ'], ans:0, exp:'Parallelogram ใช้แทน Input/Output' },
+  { q:'ลูกศร (Flow line) ใน Flowchart แทนอะไร?', opts:['ทิศทางการไหลของการทำงาน','ข้อมูลนำเข้า','การตัดสินใจ','จุดเริ่มต้น'], ans:0, exp:'ลูกศรบอกลำดับ/ทิศทางการไหลของขั้นตอน' },
+  { q:'Decision ในผังงานโดยทั่วไปให้ผลลัพธ์กี่ทาง?', opts:['2 ทาง (จริง/เท็จ)','1 ทาง','3 ทางเสมอ','ไม่จำกัด'], ans:0, exp:'โดยทั่วไป Decision แตกเป็น 2 ทาง เช่น ใช่/ไม่ใช่' },
+  { q:'ทุก Flowchart ควรเริ่มและจบด้วยสัญลักษณ์ใด?', opts:['วงรี (Start/End)','สี่เหลี่ยมข้าวหลามตัด','ลูกศร','สี่เหลี่ยมผืนผ้า'], ans:0, exp:'เริ่มต้นและสิ้นสุดด้วยวงรีเสมอ' },
+  { q:'ข้อใดคือประโยชน์หลักของ Flowchart?', opts:['แสดงลำดับขั้นตอนให้เข้าใจง่ายก่อนเขียนโค้ด','แทนการ compile','เพิ่มความเร็วโปรแกรม','ลดขนาดไฟล์'], ans:0, exp:'Flowchart ช่วยวางลำดับความคิดก่อนลงมือเขียนโปรแกรม' },
+  { q:'โครงสร้างการวนซ้ำ (Loop) ใน Flowchart เกิดจากอะไร?', opts:['เส้นทางไหลย้อนกลับผ่าน Decision','วงรีสองอัน','ลูกศรตรงเท่านั้น','สี่เหลี่ยมซ้อนกัน'], ans:0, exp:'ลูปเกิดจากเส้นทางวนย้อนกลับไปตรวจเงื่อนไขที่ Decision' }
+];
+function reloadQuiz(seed){ LabCore.renderQuiz({ container:'#quiz', bank:QUIZ_BANK, count:5, seed:seed }); }
+reloadQuiz();
+(function(){
+  var rb=document.getElementById('qcRefresh');
+  if(rb) rb.addEventListener('click', function(){ reloadQuiz((document.getElementById('qcSeed').value||'').trim()||undefined); });
+  var si=document.getElementById('qcSeed');
+  if(si) si.addEventListener('keydown', function(e){ if(e.key==='Enter'){ reloadQuiz((e.target.value||'').trim()||undefined); } });
+})();
+LabCore.mountChallengeUI({ host:'#challengeHost', arenaId:'chArena', file:LAB_FILE, bank:QUIZ_BANK, count:8 });
+const quizEl = null;
+if(false)
 QUESTIONS.forEach((item)=>{
   const box = document.createElement('div');
   box.className = 'quiz-item';

@@ -117,40 +117,8 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;lin
   </div>
 </div>
 <script src="labs-config.js"></script>
-<script>
-(function(){
-  var FILE = 'sim_array_train.html';
-  function getCfg(){
-    try{ return (window.LAB_CONFIG && window.LAB_CONFIG.labs && window.LAB_CONFIG.labs[FILE]) || {open:true, locked:false}; }catch(e){ return {open:true, locked:false}; }
-  }
-  function getUnlocked(){ try{ return JSON.parse(localStorage.getItem('gnr1007_unlocked_v1')||'[]'); }catch(e){ return []; } }
-  function unlock(){ try{ var u=getUnlocked(); if(u.indexOf(FILE)===-1){ u.push(FILE); localStorage.setItem('gnr1007_unlocked_v1', JSON.stringify(u)); } }catch(e){} }
-  var cfg = getCfg();
-  var gate = document.getElementById('labGate');
-  if(!cfg.open){
-    gate.style.display='flex';
-    document.getElementById('labGateIcon').textContent='🚧';
-    document.getElementById('labGateTitle').textContent='ห้องนี้ปิดให้บริการชั่วคราว';
-    document.getElementById('labGateMsg').textContent='ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว กรุณาติดต่อผู้สอน หรือกลับไปเลือกห้องอื่น';
-  } else if(cfg.locked && getUnlocked().indexOf(FILE)===-1){
-    gate.style.display='flex';
-    document.getElementById('labGateIcon').textContent='🔒';
-    document.getElementById('labGateTitle').textContent='ห้องทดลองนี้ต้องใช้รหัสเข้าใช้งาน';
-    document.getElementById('labGateMsg').textContent = cfg.price ? ('ระดับการเข้าถึง: '+cfg.price+' — กรอกรหัสที่ได้รับจากผู้สอน') : 'กรอกรหัสที่ได้รับจากผู้สอนเพื่อเข้าใช้งาน';
-    document.getElementById('labGateCodeBox').style.display='block';
-    document.getElementById('labGateUnlockBtn').addEventListener('click', function(){
-      var v = document.getElementById('labGateCodeInput').value.trim();
-      if(v && cfg.code && v.toLowerCase() === String(cfg.code).toLowerCase()){
-        unlock();
-        gate.style.display='none';
-      } else {
-        document.getElementById('labGateCodeErr').style.display='block';
-      }
-    });
-    document.getElementById('labGateCodeInput').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('labGateUnlockBtn').click(); });
-  }
-})();
-</script>
+<script src="lab-core.js"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){ LabCore.initGate('sim_array_train.html'); });</script>
 <header class="top">
   <img src="eng_ru_logo.png" alt="โลโก้ วิศวกรรมศาสตร์ ม.รามคำแหง" onerror="this.style.display='none'">
   <div class="ttl">
@@ -224,7 +192,17 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;lin
 
   <div class="card">
     <h2>ทดสอบความเข้าใจ</h2>
+    <div class="quizControls">
+      <button class="qcBtn" id="qcRefresh">🔀 สุ่มโจทย์ชุดใหม่</button>
+      <input class="qcSeed" id="qcSeed" placeholder="seed (ไม่บังคับ)" autocomplete="off">
+      <span class="qcHint">ใส่ seed เดียวกันเพื่อได้ชุดโจทย์เดิม (เหมาะเวลาเฉลยหน้าชั้น)</span>
+    </div>
     <div id="quiz"></div>
+  </div>
+
+  <div class="card">
+    <h2>โหมดท้าทาย — จับเวลา 1.8 นาที/ข้อ (แบบสอบ กว.)</h2>
+    <div id="challengeHost"></div>
   </div>
 
 </div>
@@ -308,7 +286,13 @@ document.getElementById('btnLoop').addEventListener('click', ()=>{
   }, 650);
 });
 
-buildTrain();
+(function(){ /* layer-3: สุ่มชุดข้อมูลอาร์เรย์ตอนโหลด (ไม่ซ้ำเดิม) */
+  var R=LabCore.makeRng(String(Date.now())+Math.random());
+  var n=LabCore.randInt(R,5,8), vals=[];
+  for(var i=0;i<n;i++) vals.push(LabCore.randInt(R,1,50));
+  var el=document.getElementById('arrInput'); if(el) el.value=vals.join(',');
+  buildTrain();
+})();
 
 /* 2D bonus */
 const MATRIX_ROWS=3, MATRIX_COLS=4;
@@ -371,7 +355,32 @@ const QUESTIONS = [
     exp: 'ถูกต้อง — 3 แถว × 4 คอลัมน์ = 12 ช่อง (แถว index 0-2, คอลัมน์ index 0-3)'
   }
 ];
-const quizEl = document.getElementById('quiz');
+/* ===== LabCore quiz + Challenge Mode wiring ===== */
+const LAB_FILE = 'sim_array_train.html';
+const QUIZ_BANK = [
+  { q:'int arr[8]; มี index ใช้งานได้ช่วงใด?', opts:['1 ถึง 8','0 ถึง 8','0 ถึง 7','1 ถึง 7'], ans:2, exp:'อาร์เรย์ขนาด 8 มี index 0 ถึง 7 (เริ่มนับที่ 0)' },
+  { q:'int arr[5]={1,2,3,4,5}; การเขียน arr[5] เป็นอย่างไร?', opts:['ได้ค่า 5','ได้ค่า 0','Out of Bounds','error ตอน compile เสมอ'], ans:2, exp:'index สูงสุดคือ 4 ดังนั้น arr[5] คือ Out of Bounds (Undefined Behavior)' },
+  { q:'อาร์เรย์ 2 มิติ seat[3][4] มีกี่ช่อง?', opts:['7','12','34','43'], ans:1, exp:'3 แถว × 4 คอลัมน์ = 12 ช่อง' },
+  { q:'อาร์เรย์ในภาษา C มี index เริ่มที่เท่าใด?', opts:['0','1','-1','แล้วแต่ภาษา'], ans:0, exp:'index ของอาร์เรย์เริ่มที่ 0 เสมอ' },
+  { q:'int arr[10]; index สุดท้ายที่ถูกต้องคือ?', opts:['10','9','11','8'], ans:1, exp:'index สุดท้าย = ขนาด - 1 = 9' },
+  { q:'m[3][5] เข้าถึงตำแหน่งใด?', opts:['แถว 3 คอลัมน์ 5','แถว 5 คอลัมน์ 3','ช่องที่ 35','ผิดเสมอ'], ans:0, exp:'รูปแบบ [row][col] = แถว 3 คอลัมน์ 5' },
+  { q:'การเข้าถึง index เกินขอบเขตใน C จะเกิดอะไร?', opts:['Undefined Behavior','ปัดเป็น index สุดท้ายอัตโนมัติ','วนกลับไป index 0','ฟ้อง error ตอน compile เสมอ'], ans:0, exp:'C ไม่ตรวจขอบเขตให้ ผลลัพธ์จึงไม่แน่นอน (อันตราย)' },
+  { q:'อาร์เรย์ขนาด n มีจำนวน index ที่ใช้ได้กี่ค่า?', opts:['n ค่า (0 ถึง n-1)','n+1 ค่า','n-1 ค่า','2n ค่า'], ans:0, exp:'มี n ช่อง ใช้ index 0 ถึง n-1' },
+  { q:'char str[6]="hello"; ทำไมต้องจอง 6 ไม่ใช่ 5?', opts:['เผื่อ null terminator ท้ายสตริง','เพื่อความสวยงาม','เพราะ h ใช้ 2 ช่อง','ไม่จำเป็น 5 ก็พอ'], ans:0, exp:'สตริงใน C ต้องมี \\0 ปิดท้าย จึงต้องเผื่ออีก 1 ช่อง' },
+  { q:'int m[2][3]; มีสมาชิกทั้งหมดกี่ตัว?', opts:['5','6','23','32'], ans:1, exp:'2 × 3 = 6 สมาชิก' },
+  { q:'การวนลูปอ่านอาร์เรย์ arr ขนาด n ควรใช้เงื่อนไขใด?', opts:['for(i=0;i<n;i++)','for(i=1;i<=n;i++)','for(i=0;i<=n;i++)','for(i=1;i<n;i++)'], ans:0, exp:'i<n ครอบคลุม index 0 ถึง n-1 พอดี ไม่เกินขอบเขต' }
+];
+function reloadQuiz(seed){ LabCore.renderQuiz({ container:'#quiz', bank:QUIZ_BANK, count:5, seed:seed }); }
+reloadQuiz();
+(function(){
+  var rb=document.getElementById('qcRefresh');
+  if(rb) rb.addEventListener('click', function(){ reloadQuiz((document.getElementById('qcSeed').value||'').trim()||undefined); });
+  var si=document.getElementById('qcSeed');
+  if(si) si.addEventListener('keydown', function(e){ if(e.key==='Enter'){ reloadQuiz((e.target.value||'').trim()||undefined); } });
+})();
+LabCore.mountChallengeUI({ host:'#challengeHost', arenaId:'chArena', file:LAB_FILE, bank:QUIZ_BANK, count:8 });
+const quizEl = null;
+if(false)
 QUESTIONS.forEach((item)=>{
   const box = document.createElement('div');
   box.className = 'quiz-item';

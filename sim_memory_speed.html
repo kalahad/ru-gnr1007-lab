@@ -102,40 +102,8 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;lin
   </div>
 </div>
 <script src="labs-config.js"></script>
-<script>
-(function(){
-  var FILE = 'sim_memory_speed.html';
-  function getCfg(){
-    try{ return (window.LAB_CONFIG && window.LAB_CONFIG.labs && window.LAB_CONFIG.labs[FILE]) || {open:true, locked:false}; }catch(e){ return {open:true, locked:false}; }
-  }
-  function getUnlocked(){ try{ return JSON.parse(localStorage.getItem('gnr1007_unlocked_v1')||'[]'); }catch(e){ return []; } }
-  function unlock(){ try{ var u=getUnlocked(); if(u.indexOf(FILE)===-1){ u.push(FILE); localStorage.setItem('gnr1007_unlocked_v1', JSON.stringify(u)); } }catch(e){} }
-  var cfg = getCfg();
-  var gate = document.getElementById('labGate');
-  if(!cfg.open){
-    gate.style.display='flex';
-    document.getElementById('labGateIcon').textContent='🚧';
-    document.getElementById('labGateTitle').textContent='ห้องนี้ปิดให้บริการชั่วคราว';
-    document.getElementById('labGateMsg').textContent='ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว กรุณาติดต่อผู้สอน หรือกลับไปเลือกห้องอื่น';
-  } else if(cfg.locked && getUnlocked().indexOf(FILE)===-1){
-    gate.style.display='flex';
-    document.getElementById('labGateIcon').textContent='🔒';
-    document.getElementById('labGateTitle').textContent='ห้องทดลองนี้ต้องใช้รหัสเข้าใช้งาน';
-    document.getElementById('labGateMsg').textContent = cfg.price ? ('ระดับการเข้าถึง: '+cfg.price+' — กรอกรหัสที่ได้รับจากผู้สอน') : 'กรอกรหัสที่ได้รับจากผู้สอนเพื่อเข้าใช้งาน';
-    document.getElementById('labGateCodeBox').style.display='block';
-    document.getElementById('labGateUnlockBtn').addEventListener('click', function(){
-      var v = document.getElementById('labGateCodeInput').value.trim();
-      if(v && cfg.code && v.toLowerCase() === String(cfg.code).toLowerCase()){
-        unlock();
-        gate.style.display='none';
-      } else {
-        document.getElementById('labGateCodeErr').style.display='block';
-      }
-    });
-    document.getElementById('labGateCodeInput').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('labGateUnlockBtn').click(); });
-  }
-})();
-</script>
+<script src="lab-core.js"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){ LabCore.initGate('sim_memory_speed.html'); });</script>
 <header class="top">
   <img src="eng_ru_logo.png" alt="โลโก้ วิศวกรรมศาสตร์ ม.รามคำแหง" onerror="this.style.display='none'">
   <div class="ttl">
@@ -183,7 +151,17 @@ footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;lin
 
   <div class="card">
     <h2>ทดสอบความเข้าใจ</h2>
+    <div class="quizControls">
+      <button class="qcBtn" id="qcRefresh">🔀 สุ่มโจทย์ชุดใหม่</button>
+      <input class="qcSeed" id="qcSeed" placeholder="seed (ไม่บังคับ)" autocomplete="off">
+      <span class="qcHint">ใส่ seed เดียวกันเพื่อได้ชุดโจทย์เดิม (เหมาะเวลาเฉลยหน้าชั้น)</span>
+    </div>
     <div id="quiz"></div>
+  </div>
+
+  <div class="card">
+    <h2>โหมดท้าทาย — จับเวลา 1.8 นาที/ข้อ (แบบสอบ กว.)</h2>
+    <div id="challengeHost"></div>
   </div>
 
 </div>
@@ -283,7 +261,32 @@ const QUESTIONS = [
   }
 ];
 
-const quizEl = document.getElementById('quiz');
+/* ===== LabCore quiz + Challenge Mode wiring ===== */
+const LAB_FILE = 'sim_memory_speed.html';
+const QUIZ_BANK = [
+  { q:'เรียงลำดับความเร็วจากเร็วไปช้าข้อใดถูกต้อง?', opts:['Register > Cache > RAM > HDD','Cache > Register > RAM > HDD','RAM > Cache > Register > HDD','HDD > RAM > Cache > Register'], ans:0, exp:'ยิ่งใกล้ CPU ยิ่งเร็ว: Register > Cache > RAM > HDD' },
+  { q:'หน่วยความจำใดมีความจุมากที่สุดแต่เข้าถึงช้าที่สุด?', opts:['Register','Cache','RAM','HDD'], ans:3, exp:'HDD จุมากที่สุด (TB) แต่เป็นจานหมุนจึงช้าที่สุด' },
+  { q:'ข้อใด "ไม่ถูกต้อง" เกี่ยวกับ Cache Memory?', opts:['อยู่ระหว่าง CPU กับ RAM','พักข้อมูลที่ CPU ใช้บ่อย','มีความจุมากกว่า RAM','เร็วกว่า RAM'], ans:2, exp:'Cache มีความจุน้อยกว่า RAM มาก แต่เร็วกว่า' },
+  { q:'หน่วยความจำที่เร็วที่สุดและอยู่ภายในตัว CPU คือ?', opts:['Register','Cache L3','RAM','SSD'], ans:0, exp:'Register อยู่ในตัว CPU เข้าถึงได้ทันที จึงเร็วที่สุด' },
+  { q:'RAM จัดเป็นหน่วยความจำประเภทใด?', opts:['หน่วยความจำหลัก ข้อมูลหายเมื่อปิดเครื่อง','หน่วยความจำสำรองถาวร','หน่วยประมวลผลกลาง','หน่วยรับข้อมูลเข้า'], ans:0, exp:'RAM เป็น volatile memory ข้อมูลหายเมื่อไม่มีไฟเลี้ยง' },
+  { q:'เรียงจาก "จุข้อมูลได้น้อยสุด" ไป "มากสุด" ข้อใดถูก?', opts:['Register, Cache, RAM, HDD','HDD, RAM, Cache, Register','RAM, Register, Cache, HDD','Cache, Register, HDD, RAM'], ans:0, exp:'ยิ่งเร็วยิ่งจุน้อย: Register จุน้อยสุด HDD จุมากสุด' },
+  { q:'อุปกรณ์ใดเป็นหน่วยความจำสำรอง (Secondary Storage)?', opts:['HDD และ SSD','Register','Cache','RAM'], ans:0, exp:'HDD/SSD เก็บข้อมูลถาวรแม้ปิดเครื่อง จัดเป็นหน่วยความจำสำรอง' },
+  { q:'เหตุใด Register จึงเร็วที่สุด?', opts:['อยู่ภายในตัว CPU เข้าถึงได้ทันที','มีความจุมากที่สุด','เป็นจานหมุนความเร็วสูง','ใช้พลังงานน้อยที่สุด'], ans:0, exp:'Register เป็นที่พักข้อมูลภายใน CPU จึงเข้าถึงเร็วที่สุด' },
+  { q:'ยิ่งหน่วยความจำอยู่ใกล้ CPU มากขึ้น โดยทั่วไปเป็นอย่างไร?', opts:['เร็วขึ้น แต่จุน้อยลงและแพงขึ้น','เร็วขึ้น และจุมากขึ้น','ช้าลง และถูกลง','ไม่มีความสัมพันธ์กัน'], ans:0, exp:'หลักการลำดับชั้นหน่วยความจำ: ใกล้ CPU = เร็ว แพง จุน้อย' },
+  { q:'SSD เมื่อเทียบกับ HDD เป็นอย่างไร?', opts:['SSD เร็วกว่าเพราะไม่มีชิ้นส่วนหมุน','SSD ช้ากว่าเพราะเป็นจานหมุน','ทั้งสองเร็วเท่ากัน','HDD เป็นหน่วยความจำหลัก'], ans:0, exp:'SSD ใช้หน่วยความจำแบบ flash ไม่มีจานหมุน จึงเร็วกว่า HDD' },
+  { q:'ลำดับใดคือ "แพงต่อ GB มากสุด" ไป "น้อยสุด"?', opts:['Register, Cache, RAM, HDD','HDD, RAM, Cache, Register','RAM, HDD, Register, Cache','Cache, HDD, RAM, Register'], ans:0, exp:'ยิ่งเร็วยิ่งราคาแพงต่อความจุ: Register แพงสุด HDD ถูกสุด' }
+];
+function reloadQuiz(seed){ LabCore.renderQuiz({ container:'#quiz', bank:QUIZ_BANK, count:5, seed:seed }); }
+reloadQuiz();
+(function(){
+  var rb=document.getElementById('qcRefresh');
+  if(rb) rb.addEventListener('click', function(){ reloadQuiz((document.getElementById('qcSeed').value||'').trim()||undefined); });
+  var si=document.getElementById('qcSeed');
+  if(si) si.addEventListener('keydown', function(e){ if(e.key==='Enter'){ reloadQuiz((e.target.value||'').trim()||undefined); } });
+})();
+LabCore.mountChallengeUI({ host:'#challengeHost', arenaId:'chArena', file:LAB_FILE, bank:QUIZ_BANK, count:8 });
+const quizEl = null;
+if(false)
 QUESTIONS.forEach((item, qi)=>{
   const box = document.createElement('div');
   box.className = 'quiz-item';
