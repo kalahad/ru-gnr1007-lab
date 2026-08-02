@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 2: โรงงานแปลภาษา (Compiler vs Interpreter) | GNR 1007</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#16306C; --navy-dark:#0d1f4d; --navy-light:#24408a;
+  --gold:#C9A227; --gold-light:#e8cf6f; --gold-dark:#8f7015;
+  --bg:#eef1f8; --card:#ffffff;
+  --danger:#c0392b; --danger-bg:#fdeaea;
+  --success:#1e8449; --success-bg:#eafaf1;
+  --text:#1c2333; --muted:#657085; --radius:16px;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Noto Sans Thai','Sarabun',sans-serif;background:linear-gradient(180deg,#eef1f8,#f8f9fd 400px);color:var(--text);}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px;}
+header.top{background:linear-gradient(120deg,var(--navy-dark),var(--navy));color:#fff;padding:22px 20px;display:flex;align-items:center;gap:18px;box-shadow:0 4px 18px rgba(22,48,108,.25);}
+header.top img{height:56px;width:auto;border-radius:8px;background:#fff;padding:4px;}
+header.top .ttl{flex:1;}
+header.top h1{margin:0;font-size:1.35rem;font-weight:800;}
+header.top p{margin:4px 0 0;font-size:.85rem;opacity:.85;font-weight:500;}
+.badge{display:inline-block;background:var(--gold);color:var(--navy-dark);font-weight:700;font-size:.75rem;padding:3px 12px;border-radius:20px;margin-bottom:6px;}
+.card{background:var(--card);border-radius:var(--radius);padding:22px 24px;margin-top:22px;box-shadow:0 2px 14px rgba(22,48,108,.08);border:1px solid #e4e8f3;}
+.card h2{margin:0 0 10px;color:var(--navy);font-size:1.15rem;border-left:6px solid var(--gold);padding-left:12px;}
+.intro{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;}
+.intro p{flex:1;min-width:260px;line-height:1.85;margin:0;}
+.chip{background:#eef1f8;border-radius:10px;padding:10px 14px;font-size:.85rem;color:var(--navy-dark);font-weight:600;min-width:150px;text-align:center;}
+.chip b{display:block;font-size:1.05rem;color:var(--navy);}
+
+.modeToggle{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.modeToggle button{flex:1;min-width:200px;padding:12px;border-radius:12px;border:2px solid #dfe4f0;background:#f7f8fc;font-family:inherit;font-weight:700;cursor:pointer;font-size:.88rem;color:var(--navy-dark);}
+.modeToggle button.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+.sourceBox{background:#0d1f4d;border-radius:12px;padding:16px 18px;margin-bottom:18px;font-family:'Courier New',monospace;font-size:.92rem;line-height:2;color:#cfe0ff;}
+.sourceBox .ln{display:flex;gap:12px;padding:2px 6px;border-radius:6px;transition:.2s;}
+.sourceBox .ln .lnNo{color:#6f89c9;width:18px;flex-shrink:0;}
+.sourceBox .ln.hi{background:rgba(201,162,39,.28);}
+.sourceBox .ln.done{background:rgba(30,132,73,.28);}
+.sourceBox .ln.err{background:rgba(192,57,43,.35);}
+
+.runBtns{display:flex;gap:10px;justify-content:center;margin-bottom:18px;flex-wrap:wrap;}
+.runBtns button{padding:11px 20px;border-radius:10px;border:none;font-family:inherit;font-weight:800;cursor:pointer;font-size:.9rem;}
+.runBtns .primary{background:var(--navy);color:#fff;}
+.runBtns .reset{background:#fff;border:2px solid var(--muted);color:var(--muted);}
+.runBtns button:disabled{opacity:.45;cursor:default;}
+
+.factoryRow{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:780px){ .factoryRow{grid-template-columns:1fr;} }
+.factory{border-radius:14px;padding:16px 18px;background:#f5f7fc;box-shadow:inset 0 0 0 1.5px #dfe4f0;}
+.factory h3{margin:0 0 10px;font-size:1rem;color:var(--navy-dark);display:flex;align-items:center;gap:8px;}
+.factory .statusMsg{min-height:52px;border-radius:10px;padding:10px 12px;font-size:.85rem;font-weight:700;background:#fff;margin-bottom:10px;color:var(--muted);}
+.factory .statusMsg.busy{background:#fff7e0;color:var(--gold-dark);}
+.factory .statusMsg.ok{background:var(--success-bg);color:var(--success);}
+.factory .statusMsg.err{background:var(--danger-bg);color:var(--danger);}
+.outputBox{background:#0d1f4d;color:#cfe0ff;border-radius:10px;padding:12px 14px;font-family:'Courier New',monospace;font-size:.85rem;min-height:110px;white-space:pre-line;line-height:1.7;}
+.outputBox .errLine{color:#ff8a80;font-weight:700;}
+
+.compareNote{margin-top:16px;background:#fff7e0;border:1px solid #f0dca0;border-radius:12px;padding:12px 16px;font-size:.85rem;color:#7a5b06;line-height:1.7;display:none;}
+.compareNote.show{display:block;}
+
+table.spec{width:100%;border-collapse:collapse;margin-top:8px;font-size:.88rem;}
+table.spec th,table.spec td{border:1px solid #dfe4f0;padding:9px 10px;text-align:center;}
+table.spec th{background:var(--navy);color:#fff;font-weight:700;}
+table.spec td.name{text-align:left;font-weight:700;color:var(--navy-dark);background:#f5f7fc;}
+
+.trap{background:var(--danger-bg);border:1.5px solid #f0b7b0;border-left:6px solid var(--danger);border-radius:12px;padding:14px 18px;margin-top:16px;}
+.trap b{color:var(--danger);}
+
+.quiz-item{border:1px solid #e4e8f3;border-radius:12px;padding:14px 16px;margin-bottom:14px;}
+.quiz-item p.q{font-weight:700;margin:0 0 10px;color:var(--navy-dark);}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.opts button{text-align:left;background:#f7f8fc;border:1.5px solid #dfe4f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:.87rem;cursor:pointer;color:var(--text);}
+.opts button:hover{border-color:var(--navy-light);}
+.opts button.correct{background:var(--success-bg);border-color:var(--success);color:var(--success);font-weight:700;}
+.opts button.wrong{background:var(--danger-bg);border-color:var(--danger);color:var(--danger);font-weight:700;}
+.fb{margin-top:8px;font-size:.85rem;font-weight:600;display:none;}
+.quizControls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+.qcBtn{background:var(--navy);color:#fff;border:none;padding:9px 16px;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;font-size:.85rem;}
+.qcSeed{border:1.5px solid #dfe4f0;border-radius:8px;padding:8px 10px;font-family:inherit;font-size:.82rem;width:150px;}
+.qcHint{font-size:.75rem;color:var(--muted);}
+
+.backHome{position:fixed;top:16px;right:16px;z-index:998;background:rgba(10,26,64,.9);color:#fff;text-decoration:none;font-weight:700;font-size:.8rem;padding:9px 18px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px);transition:.2s;}
+.backHome:hover{background:var(--gold);color:var(--navy-dark);}
+.labGate{position:fixed;inset:0;background:linear-gradient(135deg,rgba(10,26,64,.97),rgba(22,48,108,.97));z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+.labGateBox{background:#fff;border-radius:20px;padding:34px 30px;max-width:380px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.4);}
+.labGateIcon{font-size:3rem;margin-bottom:10px;}
+.labGateBox h2{color:var(--navy-dark);font-size:1.15rem;margin:0 0 10px;}
+.labGateBox p{color:var(--muted);font-size:.88rem;line-height:1.7;margin:0 0 16px;}
+#labGateCodeBox input{width:100%;padding:10px 14px;border-radius:10px;border:2px solid #d7deee;font-family:'Courier New',monospace;font-size:.95rem;text-align:center;margin-bottom:10px;box-sizing:border-box;}
+#labGateCodeBox button{width:100%;background:var(--navy);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit;}
+#labGateCodeBox button:hover{background:var(--navy-light);}
+.labGateBack{display:inline-block;margin-top:16px;color:var(--navy);font-weight:700;font-size:.82rem;text-decoration:none;}
+.labGateBack:hover{text-decoration:underline;}
+footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;line-height:1.8;}
+@media(max-width:680px){ .opts{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<a href="index.html" class="backHome" title="กลับหน้ารวมห้องทดลอง">← กลับหน้ารวม</a>
+<div id="labGate" class="labGate" style="display:none">
+  <div class="labGateBox">
+    <div class="labGateIcon" id="labGateIcon">🔒</div>
+    <h2 id="labGateTitle">ห้องนี้ปิดให้บริการชั่วคราว</h2>
+    <p id="labGateMsg">ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว</p>
+    <div id="labGateCodeBox" style="display:none">
+      <input type="text" id="labGateCodeInput" placeholder="กรอกรหัสเข้าใช้งาน" autocomplete="off">
+      <button id="labGateUnlockBtn">ปลดล็อก</button>
+      <p id="labGateCodeErr" style="display:none;color:#c0392b;font-size:.78rem;margin-top:8px;font-weight:700">รหัสไม่ถูกต้อง ลองใหม่อีกครั้ง</p>
+    </div>
+    <a href="index.html" class="labGateBack">← กลับหน้ารวมห้องทดลอง</a>
+  </div>
+</div>
+<script src="labs-config.js"></script>
+<script src="lab-core.js"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){ LabCore.initGate('sim_compile_interpret.html'); });</script>
+<header class="top">
+  <img src="eng_ru_logo.png" alt="โลโก้ วิศวกรรมศาสตร์ ม.รามคำแหง" onerror="this.style.display='none'">
+  <div class="ttl">
+    <h1>สื่อโต้ตอบ บทที่ 2 — โรงงานแปลภาษา (Compiler vs Interpreter)</h1>
+    <p>GNR 1007 เตรียมสอบ กว. Computer Programming | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <span class="badge">ทำไมบทนี้สำคัญ</span>
+    <div class="intro">
+      <p>Compiler และ Interpreter ต่างก็ "แปลภาษาโปรแกรม" ให้คอมพิวเตอร์เข้าใจ แต่แปลคนละจังหวะกัน — Compiler แปล<b>ทั้งโปรแกรม</b>ก่อนแล้วค่อยรัน ส่วน Interpreter แปล<b>ทีละบรรทัด</b>แล้วรันทันที ลองกดรันโปรแกรมจำลองด้านล่างเทียบกันสด ๆ ทั้ง 2 แบบ</p>
+      <div class="chip">น้ำหนักข้อสอบ<b>สูง</b></div>
+      <div class="chip">เรียนวันที่<b>1</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>โปรแกรมจำลอง (pseudo-code 5 บรรทัด)</h2>
+    <div class="modeToggle">
+      <button id="btnNoErr" class="active">โหมดปกติ (ไม่มี error)</button>
+      <button id="btnErr">โหมดมี error ที่บรรทัด 4</button>
+    </div>
+    <div class="sourceBox" id="sourceBox"></div>
+    <div class="runBtns">
+      <button class="primary" id="btnRun">▶ เริ่มทำงานทั้งสองแบบ</button>
+      <button class="primary" id="btnStep" disabled>ขั้นต่อไป →</button>
+      <button class="reset" id="btnReset">↺ รีเซ็ต</button>
+    </div>
+
+    <div class="factoryRow">
+      <div class="factory">
+        <h3>🏭 Compiler — แปลทั้งหมดก่อน</h3>
+        <div class="statusMsg" id="compStatus">กด "เริ่มทำงาน" เพื่อดูขั้นตอน</div>
+        <div class="outputBox" id="compOutput">(ยังไม่มีผลลัพธ์)</div>
+      </div>
+      <div class="factory">
+        <h3>⚙️ Interpreter — แปลทีละบรรทัด</h3>
+        <div class="statusMsg" id="interpStatus">กด "เริ่มทำงาน" เพื่อดูขั้นตอน</div>
+        <div class="outputBox" id="interpOutput">(ยังไม่มีผลลัพธ์)</div>
+      </div>
+    </div>
+    <div class="compareNote" id="compareNote"></div>
+  </div>
+
+  <div class="card">
+    <table class="spec">
+      <tr><th>ประเด็น</th><th>Compiler</th><th>Interpreter</th></tr>
+      <tr><td class="name">วิธีแปล</td><td>แปลทั้งโปรแกรมก่อน สร้างไฟล์ execute (.exe)</td><td>แปล + รันทีละบรรทัด/คำสั่ง</td></tr>
+      <tr><td class="name">ถ้ามี error กลางโปรแกรม</td><td>ไม่รันแม้แต่บรรทัดเดียว จนกว่าจะแก้ error</td><td>รันบรรทัดก่อนหน้าไปแล้ว ก่อนหยุดที่บรรทัด error</td></tr>
+      <tr><td class="name">ความเร็วตอนรัน</td><td>เร็วกว่า (แปลไว้ล่วงหน้าแล้ว)</td><td>ช้ากว่า (แปลใหม่ทุกครั้งที่รัน)</td></tr>
+      <tr><td class="name">ตัวอย่างภาษา</td><td>C, C++ (gcc/g++)</td><td>Python, JavaScript (มักใช้)</td></tr>
+    </table>
+    <div class="trap">
+      <b>จุดหลอก กว.:</b> ข้อสอบชอบถามว่า "ถ้าโปรแกรมมี error ที่บรรทัดกลาง ๆ แบบไหนจะเห็นผลลัพธ์บางส่วนก่อนเจอ error" — คำตอบคือ <b>Interpreter</b> (เพราะรันไปทีละบรรทัดจนกว่าจะชนบรรทัดที่ผิด) ส่วน <b>Compiler จะไม่แสดงผลอะไรเลย</b>ถ้ามี error เพราะตรวจสอบทั้งโปรแกรมเสร็จก่อนจึงจะเริ่มรัน — ภาษา C ที่ใช้สอบ กว. เป็นภาษาที่ใช้ <b>Compiler (gcc)</b> เสมอ
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ทดสอบความเข้าใจ</h2>
+    <div class="quizControls">
+      <button class="qcBtn" id="qcRefresh">🔀 สุ่มโจทย์ชุดใหม่</button>
+      <input class="qcSeed" id="qcSeed" placeholder="seed (ไม่บังคับ)" autocomplete="off">
+      <span class="qcHint">ใส่ seed เดียวกันเพื่อได้ชุดโจทย์เดิม (เหมาะเวลาเฉลยหน้าชั้น)</span>
+    </div>
+    <div id="quiz"></div>
+  </div>
+
+  <div class="card">
+    <h2>โหมดท้าทาย — จับเวลา 1.8 นาที/ข้อ (แบบสอบ กว.)</h2>
+    <div id="challengeHost"></div>
+  </div>
+
+</div>
+
+<footer>
+  พัฒนาโดย ผศ.ดร.กุลวลัญช์ วรุณสิน | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง<br>
+  ไฟล์นี้เปิดใช้งานได้แบบออฟไลน์ (หากไม่มีอินเทอร์เน็ต ฟอนต์จะสลับเป็นฟอนต์ไทยของระบบโดยอัตโนมัติ)
+</footer>
+
+<script>
+/* ===== โปรแกรมจำลอง 5 บรรทัด ===== */
+const PROGRAM = [
+  { code: 'printf("เริ่มโปรแกรม");', out: 'เริ่มโปรแกรม' },
+  { code: 'int a = 10;',            out: null },
+  { code: 'int b = 5;',             out: null },
+  { code: 'printf("%d", a / b);',   out: '2', errText: 'a / bug;  // ❌ ไม่มีตัวแปรชื่อ bug (Syntax Error)' },
+  { code: 'printf("จบโปรแกรม");',   out: 'จบโปรแกรม' }
+];
+let hasError = false;
+let stepIdx = -1;
+let running = false;
+
+function currentLines(){
+  return PROGRAM.map((p,i)=> (hasError && i===3) ? { code: p.errText, out: null, isErrLine:true } : { code: p.code, out: p.out, isErrLine:false });
+}
+
+const sourceBox = document.getElementById('sourceBox');
+function renderSource(highlightLine, doneUpTo, errAt){
+  const lines = currentLines();
+  sourceBox.innerHTML = lines.map((l, i)=>{
+    let cls = 'ln';
+    if(errAt !== undefined && i === errAt) cls += ' err';
+    else if(doneUpTo !== undefined && i <= doneUpTo) cls += ' done';
+    else if(i === highlightLine) cls += ' hi';
+    return '<div class="' + cls + '"><span class="lnNo">' + (i+1) + '</span><span>' + l.code + '</span></div>';
+  }).join('');
+}
+renderSource();
+
+document.getElementById('btnNoErr').addEventListener('click', ()=>{ hasError=false; setMode(); resetRun(); });
+document.getElementById('btnErr').addEventListener('click', ()=>{ hasError=true; setMode(); resetRun(); });
+function setMode(){
+  document.getElementById('btnNoErr').classList.toggle('active', !hasError);
+  document.getElementById('btnErr').classList.toggle('active', hasError);
+}
+
+const compStatus = document.getElementById('compStatus');
+const compOutput = document.getElementById('compOutput');
+const interpStatus = document.getElementById('interpStatus');
+const interpOutput = document.getElementById('interpOutput');
+const btnRun = document.getElementById('btnRun');
+const btnStep = document.getElementById('btnStep');
+const compareNote = document.getElementById('compareNote');
+
+function resetRun(){
+  stepIdx = -1; running = false;
+  compStatus.className='statusMsg'; compStatus.textContent='กด "เริ่มทำงาน" เพื่อดูขั้นตอน';
+  interpStatus.className='statusMsg'; interpStatus.textContent='กด "เริ่มทำงาน" เพื่อดูขั้นตอน';
+  compOutput.textContent='(ยังไม่มีผลลัพธ์)';
+  interpOutput.textContent='(ยังไม่มีผลลัพธ์)';
+  compareNote.classList.remove('show');
+  btnStep.disabled = true;
+  btnRun.disabled = false;
+  renderSource();
+}
+document.getElementById('btnReset').addEventListener('click', resetRun);
+
+btnRun.addEventListener('click', ()=>{
+  running = true;
+  btnRun.disabled = true;
+  btnStep.disabled = false;
+  stepIdx = -1;
+  // Compiler: แปลทั้งหมดก่อนในสเต็ปแรก
+  compStatus.className = 'statusMsg busy';
+  compStatus.textContent = '🔎 กำลังแปล (compile) ทั้ง 5 บรรทัดพร้อมกัน...';
+  compOutput.textContent = '(ยังไม่รัน — กำลังตรวจสอบทั้งโปรแกรมก่อน)';
+  interpStatus.className = 'statusMsg busy';
+  interpStatus.textContent = 'พร้อมเริ่มแปล+รันทีละบรรทัด กด "ขั้นต่อไป"';
+  renderSource(-1);
+  btnStep.textContent = (hasError ? 'ดูผลการ Compile →' : 'ดูผลการ Compile →');
+});
+
+let interpOutLines = [];
+btnStep.addEventListener('click', ()=>{
+  stepIdx++;
+  const lines = currentLines();
+
+  if(stepIdx === 0){
+    // เผยผลของ Compiler ทันที (ตรวจทั้งหมดจบในทีเดียว)
+    if(hasError){
+      compStatus.className = 'statusMsg err';
+      compStatus.textContent = '❌ พบ Syntax Error ที่บรรทัด 4 — หยุดตั้งแต่ขั้นตอนแปล';
+      compOutput.innerHTML = '<span class="errLine">Compile error: บรรทัด 4 — ไม่รู้จักตัวแปร "bug"</span>\n(โปรแกรมไม่ถูกรันแม้แต่บรรทัดเดียว)';
+    } else {
+      compStatus.className = 'statusMsg ok';
+      compStatus.textContent = '✅ แปลสำเร็จทั้งหมด สร้างไฟล์ .exe แล้ว — กำลังรัน...';
+      compOutput.textContent = '⏳ กำลังรันไฟล์ .exe...';
+    }
+    interpOutLines = [];
+    renderSource(0);
+    btnStep.textContent = 'รันบรรทัดที่ 1 (Interpreter) →';
+    // หมายเหตุ: Compiler รู้ผล (สำเร็จ/error) ทันทีเพราะตรวจทั้งไฟล์ก่อน
+    // แต่ Interpreter ยังต้องไล่ทีละบรรทัดต่อไป (ปุ่มยังไม่ปิด) เพื่อให้เห็นว่า
+    // ต่อให้ Compiler บอกว่า error แล้ว Interpreter ก็ยังรันบรรทัดที่ถูกก่อนหน้าไปได้จริง
+    return;
+  }
+
+  // ตั้งแต่ step 1 เป็นต้นไป: จำลอง Interpreter วิ่งทีละบรรทัด, Compiler รันผลลัพธ์ทั้งหมดทันทีถ้าไม่มี error
+  const lineNo = stepIdx - 1; // 0-based line index กำลังรันโดย interpreter
+  if(!hasError && lineNo === 0){
+    // แสดงผลลัพธ์ทั้งหมดของ compiler ทีเดียวตอนเริ่มรัน exe
+    const allOut = PROGRAM.filter(p=>p.out).map(p=>p.out).join('\n');
+    compStatus.className = 'statusMsg ok';
+    compStatus.textContent = '✅ รันเสร็จ (ทำงานเร็ว เพราะแปลไว้ล่วงหน้าแล้ว)';
+    compOutput.textContent = allOut;
+  }
+
+  if(lineNo < lines.length){
+    const l = lines[lineNo];
+    if(l.isErrLine){
+      interpStatus.className = 'statusMsg err';
+      interpStatus.textContent = '❌ พบ error ที่บรรทัด ' + (lineNo+1) + ' — หยุดทำงานทันที';
+      interpOutLines.push('❌ Error บรรทัด ' + (lineNo+1) + ': ไม่รู้จักตัวแปร "bug"');
+      interpOutput.innerHTML = interpOutLines.map(function(t,i){ return t.indexOf('❌')===0 ? '<span class="errLine">'+t+'</span>' : t; }).join('\n');
+      renderSource(undefined, lineNo-1, lineNo);
+      btnStep.disabled = true;
+      btnStep.textContent = 'จบ (Interpreter หยุดกลางทาง)';
+      showCompareNote();
+      return;
+    }
+    if(l.out) interpOutLines.push(l.out);
+    interpStatus.className = 'statusMsg busy';
+    interpStatus.textContent = 'กำลังแปล+รันบรรทัดที่ ' + (lineNo+1) + ' ...';
+    interpOutput.textContent = interpOutLines.join('\n') || '(ยังไม่มีผลลัพธ์)';
+    renderSource(lineNo+1 < lines.length ? lineNo+1 : undefined, lineNo);
+    if(lineNo === lines.length - 1){
+      interpStatus.className = 'statusMsg ok';
+      interpStatus.textContent = '✅ รันครบทุกบรรทัดแล้ว';
+      btnStep.disabled = true;
+      btnStep.textContent = 'จบการทำงาน';
+      showCompareNote();
+    } else {
+      btnStep.textContent = 'รันบรรทัดที่ ' + (lineNo+2) + ' (Interpreter) →';
+    }
+  }
+});
+
+function showCompareNote(){
+  compareNote.classList.add('show');
+  if(hasError){
+    compareNote.innerHTML = '<b>สังเกต:</b> Compiler ตรวจพบ error ตั้งแต่ขั้นตอนแปล จึง<b>ไม่แสดงผลลัพธ์อะไรเลย</b> ส่วน Interpreter รันบรรทัดที่ 1 ไปแล้วก่อนจะหยุดที่บรรทัด 4 — จึง<b>เห็นผลลัพธ์บางส่วน</b>ก่อนเจอ error นี่คือจุดต่างสำคัญที่ข้อสอบชอบถาม';
+  } else {
+    compareNote.innerHTML = '<b>สังเกต:</b> ทั้งสองแบบให้ผลลัพธ์สุดท้ายเหมือนกัน แต่ Compiler ได้ผลลัพธ์ทั้งหมด "ทันที" หลังคอมไพล์เสร็จ (เร็ว) ส่วน Interpreter ค่อย ๆ ทยอยแสดงผลทีละบรรทัด (ช้ากว่า แต่เห็นความคืบหน้าไปทีละขั้น)';
+  }
+}
+
+resetRun();
+
+/* ===== LabCore quiz + Challenge Mode wiring ===== */
+const LAB_FILE = 'sim_compile_interpret.html';
+const QUIZ_BANK = [
+  { q:'Compiler แปลโปรแกรมอย่างไร?', opts:['แปลทั้งโปรแกรมก่อน แล้วค่อยรัน','แปลทีละบรรทัดแล้วรันทันที','ไม่ต้องแปล รันได้เลย','แปลเฉพาะบรรทัดที่มี error'], ans:0, exp:'Compiler ตรวจสอบและแปลทั้งโปรแกรมก่อน สร้างไฟล์ execute แล้วจึงรัน' },
+  { q:'Interpreter แปลโปรแกรมอย่างไร?', opts:['แปลทั้งหมดก่อนเป็นไฟล์ .exe','แปลและรันทีละบรรทัด/คำสั่ง','ไม่มีการแปลเลย','แปลย้อนหลังจากท้ายไฟล์'], ans:1, exp:'Interpreter แปล+รันไปทีละบรรทัดตามลำดับ' },
+  { q:'ภาษา C ที่ใช้สอบ กว. ใช้ตัวแปลภาษาแบบใด?', opts:['Interpreter','Compiler (เช่น gcc)','ไม่ต้องแปล','ทั้งสองแบบพร้อมกัน'], ans:1, exp:'ภาษา C ใช้ Compiler เช่น gcc แปลเป็นไฟล์ execute' },
+  { q:'ถ้าโปรแกรมมี error ที่บรรทัดกลาง ๆ แบบ Compiler จะเกิดอะไรขึ้น?', opts:['รันจนถึงบรรทัดก่อน error แล้วหยุด','ไม่รันแม้แต่บรรทัดเดียว จนกว่าจะแก้ error','ข้าม error แล้วรันต่อ','รันได้ปกติทุกบรรทัด'], ans:1, exp:'Compiler ตรวจสอบทั้งโปรแกรมเสร็จก่อนจึงรัน ถ้าพบ error จะไม่รันเลย' },
+  { q:'ถ้าโปรแกรมมี error ที่บรรทัดกลาง ๆ แบบ Interpreter จะเกิดอะไรขึ้น?', opts:['ไม่แสดงผลอะไรเลย','แสดงผลบรรทัดก่อนหน้าที่รันไปแล้ว ก่อนหยุดที่บรรทัด error','รันข้าม error ไปเลย','ปฏิเสธไม่ยอมรันตั้งแต่ต้น'], ans:1, exp:'Interpreter รันไปทีละบรรทัดจนกว่าจะชนบรรทัดที่ผิด จึงเห็นผลลัพธ์บางส่วนก่อนแล้ว' },
+  { q:'ข้อดีหลักของ Interpreter คือข้อใด?', opts:['รันเร็วกว่า Compiler เสมอ','แก้ไข/ทดสอบโค้ดได้ง่ายและเห็นผลทันทีทีละบรรทัด','ไม่มีข้อผิดพลาดเลย','ใช้หน่วยความจำน้อยกว่าเสมอ'], ans:1, exp:'Interpreter เห็นผลลัพธ์ทันทีทีละบรรทัด เหมาะกับการทดสอบ/แก้บั๊ก' },
+  { q:'ข้อดีหลักของ Compiler คือข้อใด?', opts:['รันเร็วกว่าหลังคอมไพล์เสร็จ เพราะไม่ต้องแปลซ้ำทุกครั้ง','เขียนโค้ดง่ายกว่า','ไม่ต้องตรวจสอบไวยากรณ์','ใช้ได้กับทุกภาษาโดยไม่ต้องแก้ไข'], ans:0, exp:'เมื่อคอมไพล์เป็น .exe แล้ว การรันครั้งต่อไปจะเร็วกว่าเพราะไม่ต้องแปลใหม่' },
+  { q:'ไฟล์ที่ได้จากการ Compile ภาษา C เรียกว่าอะไร?', opts:['ไฟล์ source code','ไฟล์ execute (.exe)','ไฟล์ .txt','ไฟล์ pseudo-code'], ans:1, exp:'ผลลัพธ์จากการ compile คือไฟล์ execute ที่รันได้โดยตรง' },
+  { q:'ภาษาใดต่อไปนี้มักใช้ Interpreter?', opts:['C','C++','Python','Assembly'], ans:2, exp:'Python เป็นภาษาที่นิยมใช้ Interpreter แปล+รันทีละบรรทัด' },
+  { q:'กระบวนการแปลภาษาโปรแกรมให้เป็นภาษาเครื่อง เรียกโดยรวมว่าอะไร?', opts:['Translation (การแปลภาษา)','Compilation เท่านั้น','Debugging','Encryption'], ans:0, exp:'ทั้ง Compiler และ Interpreter คือเครื่องมือ "แปลภาษา" (Translation) คนละรูปแบบ' }
+];
+function reloadQuiz(seed){ LabCore.renderQuiz({ container:'#quiz', bank:QUIZ_BANK, count:5, seed:seed }); }
+reloadQuiz();
+(function(){
+  var rb=document.getElementById('qcRefresh');
+  if(rb) rb.addEventListener('click', function(){ reloadQuiz((document.getElementById('qcSeed').value||'').trim()||undefined); });
+  var si=document.getElementById('qcSeed');
+  if(si) si.addEventListener('keydown', function(e){ if(e.key==='Enter'){ reloadQuiz((e.target.value||'').trim()||undefined); } });
+})();
+LabCore.mountChallengeUI({ host:'#challengeHost', arenaId:'chArena', file:LAB_FILE, bank:QUIZ_BANK, count:8 });
+</script>
+</body>
+</html>

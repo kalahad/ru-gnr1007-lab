@@ -6,7 +6,7 @@
 <title>GNR 1007 Interactive Lab | ห้องทดลองเสมือนจริง เตรียมสอบ กว. Computer Programming</title>
 <meta name="description" content="ห้องทดลองเสมือนจริง 7 สถานี เตรียมสอบใบอนุญาตภาคีวิศวกร กว. วิชา Computer Programming | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง">
 <meta property="og:title" content="GNR 1007 Interactive Lab — ห้องทดลองเสมือนจริงเตรียมสอบ กว.">
-<meta property="og:description" content="7 สื่อโต้ตอบ เล่นได้จริงในเบราว์เซอร์ ครอบคลุมบททำคะแนนสำคัญของข้อสอบ กว. Computer Programming">
+<meta property="og:description" content="9 สื่อโต้ตอบ เล่นได้จริงในเบราว์เซอร์ ครอบคลุมบททำคะแนนสำคัญของข้อสอบ กว. Computer Programming">
 <meta property="og:type" content="website">
 <link rel="icon" href="eng_ru_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -237,15 +237,15 @@ footer b{color:var(--navy-dark);}
     <div class="heroTitle">
       <span class="kicker"><span class="dot"></span> INTERACTIVE LAB · เล่นได้จริงในเบราว์เซอร์</span>
       <h1>ห้องทดลองเสมือนจริง<br><span>พิชิตข้อสอบ กว. Computer Programming</span></h1>
-      <p>รวม 7 สื่อโต้ตอบที่แปลงหัวข้อยากให้กลายเป็นเกมส์ ลองเปลี่ยนค่าตัวแปรจนเกิด Overflow ดูตารางทดค่าโค้ดแบบ step-by-step หรือพาหุ่นยนต์เดินตาม Flowchart ด้วยตัวเอง — ไม่ต้องติดตั้งอะไร กดลิงก์แล้วเล่นได้ทันที</p>
+      <p>รวม 9 สื่อโต้ตอบที่แปลงหัวข้อยากให้กลายเป็นเกมส์ ลองจัดหมวดหมู่เครือข่าย ดูโรงงานแปลภาษาแข่งกันสด ๆ เปลี่ยนค่าตัวแปรจนเกิด Overflow หรือพาหุ่นยนต์เดินตาม Flowchart ด้วยตัวเอง — ไม่ต้องติดตั้งอะไร กดลิงก์แล้วเล่นได้ทันที</p>
     </div>
     <div class="heroStats">
-      <div class="statCard"><div class="num">7</div><div class="lbl">ห้องทดลอง</div></div>
-      <div class="statCard"><div class="num">6</div><div class="lbl">บทสำคัญที่ครอบคลุม</div></div>
+      <div class="statCard"><div class="num">9</div><div class="lbl">ห้องทดลอง</div></div>
+      <div class="statCard"><div class="num">8</div><div class="lbl">บทสำคัญที่ครอบคลุม</div></div>
       <div class="statCard"><div class="num">0%</div><div class="lbl">ต้องติดตั้ง</div></div>
     </div>
     <div class="progressWrap">
-      <div class="plabel"><span>ความคืบหน้าการสำรวจของคุณ</span><span id="progressText">0 / 7 ห้อง</span></div>
+      <div class="plabel"><span>ความคืบหน้าการสำรวจของคุณ</span><span id="progressText">0 / 9 ห้อง</span></div>
       <div class="progressBarOuter"><div class="progressBarInner" id="progressBar"></div></div>
     </div>
   </div>
@@ -255,7 +255,7 @@ footer b{color:var(--navy-dark);}
 
   <div class="toolbar">
     <div class="filterChips" id="filterChips">
-      <button data-f="all" class="active">ทั้งหมด (7)</button>
+      <button data-f="all" class="active">ทั้งหมด (9)</button>
       <button data-f="high2">น้ำหนักสูงมาก</button>
       <button data-f="high">น้ำหนักสูง</button>
       <button data-f="mid">น้ำหนักกลาง</button>
@@ -334,43 +334,55 @@ footer b{color:var(--navy-dark);}
 <script>
 const LABS = [
   {
-    file:'sim_memory_speed.html', chapter:'บทที่ 1', session:'ช่วงที่ 1',
+    file:'sim_memory_speed.html', chapter:'บทที่ 1', session:'วันที่ 1',
     icon:'🏎️', title:'แข่งความเร็วหน่วยความจำ',
     desc:'ดูภาพเคลื่อนไหวการแข่งขันความเร็ว Register vs Cache vs RAM vs HDD แบบเห็นภาพจริง พร้อมตารางเปรียบเทียบความจุ-ราคา',
     weight:'high', weightLabel:'น้ำหนักสูง'
   },
   {
-    file:'sim_overflow.html', chapter:'บทที่ 3', session:'ช่วงที่ 2',
+    file:'sim_network_map.html', chapter:'บทที่ 1', session:'วันที่ 1',
+    icon:'🌐', title:'แผนที่เครือข่าย (LAN/MAN/WAN)',
+    desc:'ภารกิจจัดหมวดหมู่เครือข่ายจากสถานการณ์จริง 10 ข้อ พร้อมรอบโบนัสจัดหมวด Input/Process/Output ของอุปกรณ์คอมพิวเตอร์',
+    weight:'high', weightLabel:'น้ำหนักสูง'
+  },
+  {
+    file:'sim_compile_interpret.html', chapter:'บทที่ 2', session:'วันที่ 1',
+    icon:'🏭', title:'โรงงานแปลภาษา (Compiler vs Interpreter)',
+    desc:'ดูโรงงาน 2 สาย ทำงานแข่งกันสด ๆ — Compiler แปลทั้งหมดก่อนแล้วรัน ส่วน Interpreter แปล+รันทีละบรรทัด ลองสลับโหมด "มี error" ดูความต่างที่ข้อสอบชอบถาม',
+    weight:'high', weightLabel:'น้ำหนักสูง'
+  },
+  {
+    file:'sim_overflow.html', chapter:'บทที่ 3', session:'วันที่ 1',
     icon:'🔢', title:'จำลอง Overflow ของตัวแปร',
     desc:'ลองเพิ่มค่า signed/unsigned char ไปเรื่อยๆ จนวนกลับ (Overflow) ดูบิตจริงระดับ 8 บิตแบบเรียลไทม์',
     weight:'high', weightLabel:'น้ำหนักสูง'
   },
   {
-    file:'sim_precedence.html', chapter:'บทที่ 4', session:'ช่วงที่ 3',
+    file:'sim_precedence.html', chapter:'บทที่ 4', session:'วันที่ 1',
     icon:'🧮', title:'ลำดับการคำนวณ (Precedence)',
     desc:'พิมพ์นิพจน์ C ของคุณเอง แล้วดูลำดับการคำนวณจริงทีละขั้น พร้อมไฮไลต์ว่าเครื่องหมายใดทำงานก่อน-หลัง',
     weight:'high', weightLabel:'น้ำหนักสูง'
   },
   {
-    file:'sim_trace.html', chapter:'บทที่ 5', session:'ช่วงที่ 4-6',
+    file:'sim_trace.html', chapter:'บทที่ 5', session:'วันที่ 2',
     icon:'🔍', title:'ตารางทดค่า (Code Tracing)',
     desc:'วางโค้ด C ของคุณเอง (if/for/while/printf) แล้วกด Step ทีละบรรทัด ระบบสร้างตารางทดค่าให้อัตโนมัติ',
     weight:'high2', weightLabel:'น้ำหนักสูงมาก'
   },
   {
-    file:'sim_array_train.html', chapter:'บทที่ 7', session:'ช่วงที่ 7',
-    icon:'🚂', title:'ขบวนรถไฟอาร์เรย์',
-    desc:'อาร์เรย์คือขบวนรถไฟที่ index เริ่มที่ 0 เสมอ — ลองเข้าถึง index เกินขอบเขตดูว่าเกิด Out of Bounds อย่างไร',
-    weight:'mid', weightLabel:'น้ำหนักกลาง'
-  },
-  {
-    file:'sim_flowchart.html', chapter:'บทที่ 10', session:'ช่วงที่ 10',
+    file:'sim_flowchart.html', chapter:'บทที่ 10', session:'วันที่ 3',
     icon:'🤖', title:'Flowchart พาหุ่นยนต์กลับบ้าน',
     desc:'ลาก/คลิกบล็อก Process และ Decision ประกอบเป็นโปรแกรม แล้วรันหุ่นยนต์เดินตามผังจริงบนกริด',
     weight:'high', weightLabel:'น้ำหนักสูง'
   },
   {
-    file:'sim_sort.html', chapter:'บทที่ 11', session:'ช่วงที่ 13',
+    file:'sim_array_train.html', chapter:'บทที่ 7', session:'วันที่ 3',
+    icon:'🚂', title:'ขบวนรถไฟอาร์เรย์',
+    desc:'อาร์เรย์คือขบวนรถไฟที่ index เริ่มที่ 0 เสมอ — ลองเข้าถึง index เกินขอบเขตดูว่าเกิด Out of Bounds อย่างไร',
+    weight:'mid', weightLabel:'น้ำหนักกลาง'
+  },
+  {
+    file:'sim_sort.html', chapter:'บทที่ 11', session:'วันที่ 4',
     icon:'🥞', title:'Bubble Sort & Stack/Queue',
     desc:'ดู Bubble Sort เรียงแพนเค้กทีละขั้นพร้อม pseudocode ไฮไลต์ และทดลอง Stack (LIFO) กับ Queue (FIFO) ด้วยตนเอง',
     weight:'mid', weightLabel:'น้ำหนักกลาง'

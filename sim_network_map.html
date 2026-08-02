@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 1: แผนที่เครือข่าย (LAN/MAN/WAN) | GNR 1007</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#16306C; --navy-dark:#0d1f4d; --navy-light:#24408a;
+  --gold:#C9A227; --gold-light:#e8cf6f; --gold-dark:#8f7015;
+  --bg:#eef1f8; --card:#ffffff;
+  --danger:#c0392b; --danger-bg:#fdeaea;
+  --success:#1e8449; --success-bg:#eafaf1;
+  --text:#1c2333; --muted:#657085; --radius:16px;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Noto Sans Thai','Sarabun',sans-serif;background:linear-gradient(180deg,#eef1f8,#f8f9fd 400px);color:var(--text);}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px;}
+header.top{background:linear-gradient(120deg,var(--navy-dark),var(--navy));color:#fff;padding:22px 20px;display:flex;align-items:center;gap:18px;box-shadow:0 4px 18px rgba(22,48,108,.25);}
+header.top img{height:56px;width:auto;border-radius:8px;background:#fff;padding:4px;}
+header.top .ttl{flex:1;}
+header.top h1{margin:0;font-size:1.35rem;font-weight:800;}
+header.top p{margin:4px 0 0;font-size:.85rem;opacity:.85;font-weight:500;}
+.badge{display:inline-block;background:var(--gold);color:var(--navy-dark);font-weight:700;font-size:.75rem;padding:3px 12px;border-radius:20px;margin-bottom:6px;}
+.card{background:var(--card);border-radius:var(--radius);padding:22px 24px;margin-top:22px;box-shadow:0 2px 14px rgba(22,48,108,.08);border:1px solid #e4e8f3;}
+.card h2{margin:0 0 10px;color:var(--navy);font-size:1.15rem;border-left:6px solid var(--gold);padding-left:12px;}
+.intro{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;}
+.intro p{flex:1;min-width:260px;line-height:1.85;margin:0;}
+.chip{background:#eef1f8;border-radius:10px;padding:10px 14px;font-size:.85rem;color:var(--navy-dark);font-weight:600;min-width:150px;text-align:center;}
+.chip b{display:block;font-size:1.05rem;color:var(--navy);}
+
+.scaleRow{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;}
+.scaleCard{flex:1;min-width:200px;border-radius:14px;padding:18px;text-align:center;color:#fff;position:relative;overflow:hidden;}
+.scaleCard.lan{background:linear-gradient(135deg,#1e8449,#27ae60);}
+.scaleCard.man{background:linear-gradient(135deg,var(--navy),var(--navy-light));}
+.scaleCard.wan{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--navy-dark);}
+.scaleCard .ring{width:70px;height:70px;border-radius:50%;border:4px solid rgba(255,255,255,.55);margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:900;}
+.scaleCard h3{margin:0 0 6px;font-size:1.1rem;}
+.scaleCard p{margin:0;font-size:.82rem;opacity:.95;line-height:1.6;}
+
+.deckWrap{max-width:640px;margin:0 auto;}
+.deckHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.deckHead .prog{font-weight:700;color:var(--navy-dark);font-size:.9rem;}
+.deckHead .score{font-weight:800;color:var(--gold-dark);font-size:.9rem;}
+.scenarioCard{background:#f5f7fc;border-radius:16px;padding:26px 22px;text-align:center;min-height:120px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;font-weight:700;color:var(--navy-dark);line-height:1.7;box-shadow:inset 0 0 0 1.5px #dfe4f0;}
+.classifyBtns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:16px;}
+.classifyBtns button{padding:14px 8px;border-radius:12px;border:2px solid #dfe4f0;background:#fff;font-family:inherit;font-weight:800;cursor:pointer;font-size:.95rem;color:var(--navy-dark);transition:.15s;}
+.classifyBtns button:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(22,48,108,.15);}
+.classifyBtns button.lan{border-color:#27ae60;} .classifyBtns button.lan:hover{background:var(--success-bg);}
+.classifyBtns button.man{border-color:var(--navy);} .classifyBtns button.man:hover{background:#eef1f8;}
+.classifyBtns button.wan{border-color:var(--gold);} .classifyBtns button.wan:hover{background:#fdf6e2;}
+.classifyBtns button:disabled{opacity:.5;cursor:default;transform:none;box-shadow:none;}
+.deckFb{min-height:50px;border-radius:10px;padding:12px 16px;font-weight:700;font-size:.9rem;margin-top:14px;display:none;}
+.deckFb.ok{background:var(--success-bg);color:var(--success);display:block;}
+.deckFb.bad{background:var(--danger-bg);color:var(--danger);display:block;}
+.deckNextBtn{display:block;margin:16px auto 0;background:var(--navy);color:#fff;border:none;padding:11px 26px;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit;font-size:.9rem;}
+.deckDone{text-align:center;padding:14px 0;}
+.deckDone .num{font-size:2.6rem;font-weight:900;color:var(--navy);}
+.restartBtn{background:#fff;border:2px solid var(--navy);color:var(--navy);font-weight:800;padding:10px 22px;border-radius:10px;cursor:pointer;font-family:inherit;margin-top:10px;}
+
+.bonusGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:10px;}
+.ioCard{background:#f5f7fc;border-radius:12px;padding:14px 10px;text-align:center;box-shadow:inset 0 0 0 1.5px #dfe4f0;}
+.ioCard .icn{font-size:1.7rem;margin-bottom:6px;}
+.ioCard .nm{font-weight:700;font-size:.85rem;color:var(--navy-dark);margin-bottom:10px;}
+.ioBtns{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;}
+.ioBtns button{border:1.5px solid #dfe4f0;background:#fff;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.72rem;font-weight:700;cursor:pointer;}
+.ioBtns button.correct{background:var(--success-bg);border-color:var(--success);color:var(--success);}
+.ioBtns button.wrong{background:var(--danger-bg);border-color:var(--danger);color:var(--danger);}
+.ioBtns button:disabled{cursor:default;}
+
+table.spec{width:100%;border-collapse:collapse;margin-top:8px;font-size:.88rem;}
+table.spec th,table.spec td{border:1px solid #dfe4f0;padding:9px 10px;text-align:center;}
+table.spec th{background:var(--navy);color:#fff;font-weight:700;}
+table.spec td.name{text-align:left;font-weight:700;color:var(--navy-dark);background:#f5f7fc;}
+
+.trap{background:var(--danger-bg);border:1.5px solid #f0b7b0;border-left:6px solid var(--danger);border-radius:12px;padding:14px 18px;margin-top:16px;}
+.trap b{color:var(--danger);}
+
+.quiz-item{border:1px solid #e4e8f3;border-radius:12px;padding:14px 16px;margin-bottom:14px;}
+.quiz-item p.q{font-weight:700;margin:0 0 10px;color:var(--navy-dark);}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.opts button{text-align:left;background:#f7f8fc;border:1.5px solid #dfe4f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:.87rem;cursor:pointer;color:var(--text);}
+.opts button:hover{border-color:var(--navy-light);}
+.opts button.correct{background:var(--success-bg);border-color:var(--success);color:var(--success);font-weight:700;}
+.opts button.wrong{background:var(--danger-bg);border-color:var(--danger);color:var(--danger);font-weight:700;}
+.fb{margin-top:8px;font-size:.85rem;font-weight:600;display:none;}
+.quizControls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+.qcBtn{background:var(--navy);color:#fff;border:none;padding:9px 16px;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;font-size:.85rem;}
+.qcSeed{border:1.5px solid #dfe4f0;border-radius:8px;padding:8px 10px;font-family:inherit;font-size:.82rem;width:150px;}
+.qcHint{font-size:.75rem;color:var(--muted);}
+
+.backHome{position:fixed;top:16px;right:16px;z-index:998;background:rgba(10,26,64,.9);color:#fff;text-decoration:none;font-weight:700;font-size:.8rem;padding:9px 18px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px);transition:.2s;}
+.backHome:hover{background:var(--gold);color:var(--navy-dark);}
+.labGate{position:fixed;inset:0;background:linear-gradient(135deg,rgba(10,26,64,.97),rgba(22,48,108,.97));z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+.labGateBox{background:#fff;border-radius:20px;padding:34px 30px;max-width:380px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.4);}
+.labGateIcon{font-size:3rem;margin-bottom:10px;}
+.labGateBox h2{color:var(--navy-dark);font-size:1.15rem;margin:0 0 10px;}
+.labGateBox p{color:var(--muted);font-size:.88rem;line-height:1.7;margin:0 0 16px;}
+#labGateCodeBox input{width:100%;padding:10px 14px;border-radius:10px;border:2px solid #d7deee;font-family:'Courier New',monospace;font-size:.95rem;text-align:center;margin-bottom:10px;box-sizing:border-box;}
+#labGateCodeBox button{width:100%;background:var(--navy);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:800;cursor:pointer;font-family:inherit;}
+#labGateCodeBox button:hover{background:var(--navy-light);}
+.labGateBack{display:inline-block;margin-top:16px;color:var(--navy);font-weight:700;font-size:.82rem;text-decoration:none;}
+.labGateBack:hover{text-decoration:underline;}
+footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:34px;line-height:1.8;}
+@media(max-width:680px){ .opts{grid-template-columns:1fr;} .classifyBtns{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<a href="index.html" class="backHome" title="กลับหน้ารวมห้องทดลอง">← กลับหน้ารวม</a>
+<div id="labGate" class="labGate" style="display:none">
+  <div class="labGateBox">
+    <div class="labGateIcon" id="labGateIcon">🔒</div>
+    <h2 id="labGateTitle">ห้องนี้ปิดให้บริการชั่วคราว</h2>
+    <p id="labGateMsg">ผู้สอนปิดการเข้าใช้งานห้องทดลองนี้ชั่วคราว</p>
+    <div id="labGateCodeBox" style="display:none">
+      <input type="text" id="labGateCodeInput" placeholder="กรอกรหัสเข้าใช้งาน" autocomplete="off">
+      <button id="labGateUnlockBtn">ปลดล็อก</button>
+      <p id="labGateCodeErr" style="display:none;color:#c0392b;font-size:.78rem;margin-top:8px;font-weight:700">รหัสไม่ถูกต้อง ลองใหม่อีกครั้ง</p>
+    </div>
+    <a href="index.html" class="labGateBack">← กลับหน้ารวมห้องทดลอง</a>
+  </div>
+</div>
+<script src="labs-config.js"></script>
+<script src="lab-core.js"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){ LabCore.initGate('sim_network_map.html'); });</script>
+<header class="top">
+  <img src="eng_ru_logo.png" alt="โลโก้ วิศวกรรมศาสตร์ ม.รามคำแหง" onerror="this.style.display='none'">
+  <div class="ttl">
+    <h1>สื่อโต้ตอบ บทที่ 1 — แผนที่เครือข่าย (LAN / MAN / WAN)</h1>
+    <p>GNR 1007 เตรียมสอบ กว. Computer Programming | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <span class="badge">ทำไมบทนี้สำคัญ</span>
+    <div class="intro">
+      <p>เครือข่ายคอมพิวเตอร์แบ่งตาม "ขนาดพื้นที่ทางภูมิศาสตร์ที่ครอบคลุม" ไม่ใช่จำนวนเครื่อง — นี่คือจุดหลอกอันดับหนึ่งของบทนี้ ลองไล่ภารกิจจัดหมวดหมู่ด้านล่าง แล้วดูว่าคุณจะแยก LAN, MAN, WAN ได้แม่นแค่ไหน</p>
+      <div class="chip">น้ำหนักข้อสอบ<b>สูง</b></div>
+      <div class="chip">เรียนวันที่<b>1</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3 ระดับของเครือข่าย — เล็กไปใหญ่</h2>
+    <div class="scaleRow">
+      <div class="scaleCard lan">
+        <div class="ring">LAN</div>
+        <h3>Local Area Network</h3>
+        <p>พื้นที่จำกัด: ห้อง, อาคาร, องค์กรเดียว (ต่อให้มีหลายอาคารในรั้วเดียวกัน)</p>
+      </div>
+      <div class="scaleCard man">
+        <div class="ring">MAN</div>
+        <h3>Metropolitan Area Network</h3>
+        <p>ระดับเมือง: เชื่อมหลายสาขา/หลายองค์กรในเมืองเดียวกัน</p>
+      </div>
+      <div class="scaleCard wan">
+        <div class="ring">WAN</div>
+        <h3>Wide Area Network</h3>
+        <p>ระดับประเทศ/โลก: อินเทอร์เน็ต, เชื่อมข้ามประเทศ</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ภารกิจ: จัดหมวดหมู่เครือข่าย</h2>
+    <div class="deckWrap">
+      <div class="deckHead">
+        <span class="prog" id="deckProg">สถานการณ์ 1 / 10</span>
+        <span class="score" id="deckScore">ถูก 0 ข้อ</span>
+      </div>
+      <div class="scenarioCard" id="scenarioCard">กำลังโหลด...</div>
+      <div class="classifyBtns">
+        <button class="lan" id="btnLan">LAN</button>
+        <button class="man" id="btnMan">MAN</button>
+        <button class="wan" id="btnWan">WAN</button>
+      </div>
+      <div class="deckFb" id="deckFb"></div>
+      <button class="deckNextBtn" id="deckNextBtn" style="display:none">ข้อถัดไป →</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>รอบโบนัส: อุปกรณ์นี้เป็น Input, Process หรือ Output?</h2>
+    <p style="color:var(--muted);font-size:.87rem;margin-top:0">คอมพิวเตอร์ทำงานเป็น 3 ขั้นเสมอ: รับข้อมูล (Input) → ประมวลผล (Process) → แสดงผล (Output)</p>
+    <div class="bonusGrid" id="bonusGrid"></div>
+  </div>
+
+  <div class="card">
+    <table class="spec">
+      <tr><th>ประเภท</th><th>พื้นที่ครอบคลุม</th><th>ตัวอย่าง</th></tr>
+      <tr><td class="name">LAN</td><td>ห้อง / อาคาร / องค์กรเดียว</td><td>เครือข่ายในห้องแล็บ, Wi-Fi บ้าน, มหาวิทยาลัยเดียว</td></tr>
+      <tr><td class="name">MAN</td><td>ระดับเมือง</td><td>เชื่อมสาขาธนาคารทั่วกรุงเทพฯ, เครือข่ายเคเบิลทีวีในเมือง</td></tr>
+      <tr><td class="name">WAN</td><td>ระดับประเทศ / โลก</td><td>อินเทอร์เน็ต, เครือข่าย ATM ทั่วประเทศ, บริษัทข้ามชาติ</td></tr>
+    </table>
+    <div class="trap">
+      <b>จุดหลอก กว.:</b> การแบ่ง LAN/MAN/WAN ดูที่ <b>ขนาดพื้นที่ทางภูมิศาสตร์</b> เท่านั้น ไม่เกี่ยวกับจำนวนเครื่อง — เครือข่าย 200 เครื่องในตึกเดียวกันยังเป็น <b>LAN</b> ส่วนเครือข่าย 3 เครื่องที่เชื่อมข้ามประเทศคือ <b>WAN</b> และข้อสอบชอบสลับ MAN กับ WAN โดยเฉพาะโจทย์ "หลายสาขาในเมืองเดียวกัน" (MAN ไม่ใช่ WAN)
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ทดสอบความเข้าใจ</h2>
+    <div class="quizControls">
+      <button class="qcBtn" id="qcRefresh">🔀 สุ่มโจทย์ชุดใหม่</button>
+      <input class="qcSeed" id="qcSeed" placeholder="seed (ไม่บังคับ)" autocomplete="off">
+      <span class="qcHint">ใส่ seed เดียวกันเพื่อได้ชุดโจทย์เดิม (เหมาะเวลาเฉลยหน้าชั้น)</span>
+    </div>
+    <div id="quiz"></div>
+  </div>
+
+  <div class="card">
+    <h2>โหมดท้าทาย — จับเวลา 1.8 นาที/ข้อ (แบบสอบ กว.)</h2>
+    <div id="challengeHost"></div>
+  </div>
+
+</div>
+
+<footer>
+  พัฒนาโดย ผศ.ดร.กุลวลัญช์ วรุณสิน | สาขาวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยรามคำแหง<br>
+  ไฟล์นี้เปิดใช้งานได้แบบออฟไลน์ (หากไม่มีอินเทอร์เน็ต ฟอนต์จะสลับเป็นฟอนต์ไทยของระบบโดยอัตโนมัติ)
+</footer>
+
+<script>
+/* ===== ภารกิจจัดหมวดหมู่เครือข่าย ===== */
+const SCENARIOS = [
+  { text:'เชื่อมคอมพิวเตอร์ 20 เครื่องในห้องแล็บเดียวกัน', ans:'lan', exp:'อยู่ในห้องเดียวกัน พื้นที่จำกัดมาก — เป็น LAN แม้จะมีถึง 20 เครื่องก็ตาม' },
+  { text:'Wi-Fi ที่ใช้ในบ้านของคุณ', ans:'lan', exp:'ครอบคลุมแค่ตัวบ้าน — เป็น LAN' },
+  { text:'เครือข่ายที่เชื่อมทุกอาคารภายในรั้วมหาวิทยาลัยเดียวกัน', ans:'lan', exp:'แม้มีหลายอาคาร แต่ยังอยู่ในองค์กร/พื้นที่เดียวกัน — ยังนับเป็น LAN' },
+  { text:'เชื่อมคอมพิวเตอร์เพียง 3 เครื่องในห้องทำงานเดียวกัน', ans:'lan', exp:'จำนวนเครื่องน้อย แต่สำคัญคือพื้นที่ — ห้องเดียวกันคือ LAN (จุดหลอก: จำนวนเครื่องไม่ใช่ตัวตัดสิน)' },
+  { text:'เชื่อมทุกสาขาของธนาคารเดียวกันทั่วกรุงเทพมหานคร', ans:'man', exp:'ครอบคลุมทั้งเมือง เชื่อมหลายสาขา — เป็น MAN' },
+  { text:'เครือข่ายอินเทอร์เน็ตความเร็วสูงที่ให้บริการทั่วเมืองเชียงใหม่', ans:'man', exp:'ครอบคลุมระดับเมือง — เป็น MAN' },
+  { text:'เครือข่ายที่มหาวิทยาลัยหลายแห่งในจังหวัดเดียวกันเชื่อมต่อใช้ร่วมกัน', ans:'man', exp:'เชื่อมหลายองค์กรในพื้นที่ระดับเมือง/จังหวัด — เป็น MAN ไม่ใช่ WAN', },
+  { text:'อินเทอร์เน็ต (Internet) ที่เชื่อมคอมพิวเตอร์ทั่วโลก', ans:'wan', exp:'ครอบคลุมทั่วโลก — เป็น WAN ที่ใหญ่ที่สุด' },
+  { text:'เครือข่ายบริษัทข้ามชาติ เชื่อมสำนักงานสาขาในหลายประเทศ', ans:'wan', exp:'ข้ามประเทศ — เป็น WAN' },
+  { text:'ระบบตู้ ATM ของธนาคารเดียวกันที่เชื่อมกันทั่วประเทศไทย', ans:'wan', exp:'ครอบคลุมทั้งประเทศ — เป็น WAN (จุดหลอก: หลายคนเข้าใจผิดว่าเป็น MAN เพราะเป็นธนาคารเดียวกัน)' }
+];
+let deckIdx = 0, deckCorrect = 0, deckOrder = [...SCENARIOS];
+
+function shuffleArr(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+deckOrder = shuffleArr(SCENARIOS);
+
+const scenarioCard = document.getElementById('scenarioCard');
+const deckProg = document.getElementById('deckProg');
+const deckScore = document.getElementById('deckScore');
+const deckFb = document.getElementById('deckFb');
+const deckNextBtn = document.getElementById('deckNextBtn');
+const classifyBtns = document.querySelectorAll('.classifyBtns button');
+
+function renderScenario(){
+  deckFb.style.display = 'none';
+  deckFb.className = 'deckFb';
+  deckNextBtn.style.display = 'none';
+  classifyBtns.forEach(b=>b.disabled=false);
+  if(deckIdx >= deckOrder.length){
+    scenarioCard.innerHTML = '<div class="deckDone"><div class="num">' + deckCorrect + ' / ' + deckOrder.length + '</div>ตอบถูก — เก่งมาก!<br><button class="restartBtn" id="restartDeck">เล่นอีกรอบ 🔄</button></div>';
+    document.querySelector('.classifyBtns').style.display = 'none';
+    deckProg.textContent = 'จบภารกิจแล้ว';
+    const rb = document.getElementById('restartDeck');
+    if(rb) rb.addEventListener('click', ()=>{
+      deckIdx = 0; deckCorrect = 0; deckOrder = shuffleArr(SCENARIOS);
+      document.querySelector('.classifyBtns').style.display = 'grid';
+      renderScenario();
+    });
+    return;
+  }
+  deckProg.textContent = 'สถานการณ์ ' + (deckIdx+1) + ' / ' + deckOrder.length;
+  deckScore.textContent = 'ถูก ' + deckCorrect + ' ข้อ';
+  scenarioCard.textContent = deckOrder[deckIdx].text;
+}
+
+function answerScenario(choice){
+  const item = deckOrder[deckIdx];
+  classifyBtns.forEach(b=>b.disabled=true);
+  const isCorrect = choice === item.ans;
+  if(isCorrect){
+    deckCorrect++;
+    deckFb.className = 'deckFb ok';
+    deckFb.textContent = '✔ ถูกต้อง! ' + item.exp;
+  }else{
+    deckFb.className = 'deckFb bad';
+    deckFb.textContent = '✘ ยังไม่ถูก (คำตอบคือ ' + item.ans.toUpperCase() + ') — ' + item.exp;
+  }
+  deckFb.style.display = 'block';
+  deckNextBtn.style.display = 'block';
+}
+
+document.getElementById('btnLan').addEventListener('click', ()=>answerScenario('lan'));
+document.getElementById('btnMan').addEventListener('click', ()=>answerScenario('man'));
+document.getElementById('btnWan').addEventListener('click', ()=>answerScenario('wan'));
+deckNextBtn.addEventListener('click', ()=>{ deckIdx++; renderScenario(); });
+renderScenario();
+
+/* ===== รอบโบนัส: Input / Process / Output ===== */
+const IO_ITEMS = [
+  { name:'คีย์บอร์ด', icon:'⌨️', ans:'input' },
+  { name:'เมาส์', icon:'🖱️', ans:'input' },
+  { name:'สแกนเนอร์', icon:'🖨️', ans:'input' },
+  { name:'จอภาพ', icon:'🖥️', ans:'output' },
+  { name:'เครื่องพิมพ์', icon:'📄', ans:'output' },
+  { name:'ลำโพง', icon:'🔊', ans:'output' },
+  { name:'CPU', icon:'💻', ans:'process' },
+  { name:'RAM', icon:'🧠', ans:'process' }
+];
+const IO_LABEL = { input:'Input', process:'Process', output:'Output' };
+const bonusGrid = document.getElementById('bonusGrid');
+IO_ITEMS.forEach((item, i)=>{
+  const div = document.createElement('div');
+  div.className = 'ioCard';
+  div.innerHTML = '<div class="icn">' + item.icon + '</div><div class="nm">' + item.name + '</div><div class="ioBtns" id="ioBtns' + i + '"></div>';
+  bonusGrid.appendChild(div);
+  const btnsEl = div.querySelector('.ioBtns');
+  ['input','process','output'].forEach(function(opt){
+    const b = document.createElement('button');
+    b.textContent = IO_LABEL[opt];
+    b.addEventListener('click', function(){
+      const allBtns = btnsEl.querySelectorAll('button');
+      allBtns.forEach(function(bb){ bb.disabled = true; });
+      if(opt === item.ans){ b.classList.add('correct'); }
+      else{ b.classList.add('wrong'); btnsEl.querySelector('button:nth-child(' + (['input','process','output'].indexOf(item.ans)+1) + ')').classList.add('correct'); }
+    });
+    btnsEl.appendChild(b);
+  });
+});
+
+/* ===== LabCore quiz + Challenge Mode wiring ===== */
+const LAB_FILE = 'sim_network_map.html';
+const QUIZ_BANK = [
+  { q:'LAN ย่อมาจากอะไร?', opts:['Local Area Network','Large Area Network','Linked Area Network','Long Area Network'], ans:0, exp:'LAN = Local Area Network เครือข่ายพื้นที่จำกัด' },
+  { q:'เครือข่ายที่ครอบคลุมพื้นที่ระดับเมือง เรียกว่าอะไร?', opts:['LAN','MAN','WAN','PAN'], ans:1, exp:'MAN = Metropolitan Area Network ครอบคลุมระดับเมือง' },
+  { q:'อินเทอร์เน็ตจัดเป็นเครือข่ายประเภทใด?', opts:['LAN','MAN','WAN','ไม่จัดอยู่ในประเภทใด'], ans:2, exp:'อินเทอร์เน็ตครอบคลุมทั่วโลก จึงเป็น WAN' },
+  { q:'ข้อใดเรียงขนาดพื้นที่ครอบคลุมจากเล็กไปใหญ่ถูกต้อง?', opts:['LAN < MAN < WAN','WAN < MAN < LAN','MAN < LAN < WAN','LAN < WAN < MAN'], ans:0, exp:'เรียงจากเล็กไปใหญ่: LAN < MAN < WAN' },
+  { q:'เกณฑ์หลักที่ใช้แบ่งประเภทเครือข่าย LAN/MAN/WAN คือข้อใด?', opts:['จำนวนเครื่องคอมพิวเตอร์','ขนาดพื้นที่ทางภูมิศาสตร์ที่ครอบคลุม','ความเร็วอินเทอร์เน็ต','ราคาของอุปกรณ์'], ans:1, exp:'แบ่งตามพื้นที่ทางภูมิศาสตร์ ไม่ใช่จำนวนเครื่อง' },
+  { q:'เชื่อมคอมพิวเตอร์ 200 เครื่องในตึกเดียวกัน จัดเป็นเครือข่ายประเภทใด?', opts:['LAN','MAN','WAN','ต้องดูความเร็วก่อน'], ans:0, exp:'อยู่ในตึกเดียวกัน (พื้นที่จำกัด) จึงเป็น LAN แม้จำนวนเครื่องจะมาก' },
+  { q:'MAN ย่อมาจากอะไร?', opts:['Metropolitan Area Network','Multiple Area Network','Main Area Network','Medium Area Network'], ans:0, exp:'MAN = Metropolitan Area Network' },
+  { q:'ข้อใดคือตัวอย่างเครือข่าย WAN?', opts:['Wi-Fi ในบ้าน','เครือข่ายในห้องแล็บ','เชื่อมสำนักงานสาขาข้ามประเทศ','เครือข่ายในตึกเดียวกัน'], ans:2, exp:'ข้ามประเทศ = ครอบคลุมกว้างระดับโลก จึงเป็น WAN' },
+  { q:'องค์ประกอบหลักของคอมพิวเตอร์แบ่งเป็นกี่ส่วน?', opts:['2 ส่วน','3 ส่วน (Input-Process-Output)','4 ส่วน','5 ส่วน'], ans:1, exp:'แบ่งเป็น 3 ส่วนหลัก: Input, Process, Output' },
+  { q:'อุปกรณ์ใดจัดเป็นหน่วย Output?', opts:['คีย์บอร์ด','เมาส์','จอภาพ','สแกนเนอร์'], ans:2, exp:'จอภาพแสดงผลลัพธ์ จึงเป็น Output' },
+  { q:'อุปกรณ์ใดจัดเป็นหน่วย Input?', opts:['เครื่องพิมพ์','ลำโพง','จอภาพ','คีย์บอร์ด'], ans:3, exp:'คีย์บอร์ดใช้รับข้อมูลเข้า จึงเป็น Input' },
+  { q:'หน่วยประมวลผลกลางของคอมพิวเตอร์คืออะไร?', opts:['RAM','CPU','ROM','HDD'], ans:1, exp:'CPU (Central Processing Unit) คือหน่วยประมวลผลกลาง' }
+];
+function reloadQuiz(seed){ LabCore.renderQuiz({ container:'#quiz', bank:QUIZ_BANK, count:5, seed:seed }); }
+reloadQuiz();
+(function(){
+  var rb=document.getElementById('qcRefresh');
+  if(rb) rb.addEventListener('click', function(){ reloadQuiz((document.getElementById('qcSeed').value||'').trim()||undefined); });
+  var si=document.getElementById('qcSeed');
+  if(si) si.addEventListener('keydown', function(e){ if(e.key==='Enter'){ reloadQuiz((e.target.value||'').trim()||undefined); } });
+})();
+LabCore.mountChallengeUI({ host:'#challengeHost', arenaId:'chArena', file:LAB_FILE, bank:QUIZ_BANK, count:8 });
+</script>
+</body>
+</html>

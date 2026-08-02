@@ -21,28 +21,32 @@ window.LAB_CONFIG = {
   version: 2,
   updatedNote: 'เริ่มต้น: เปิดถึงห้องที่ 1 (unlockLevel=1) ห้องอื่นรอผู้ดูแลเลื่อนระดับ',
 
-  // ระดับที่ปลดล็อก: 1 = เปิดเฉพาะห้องแรก, 7 = เปิดครบทุกห้อง
+  // ระดับที่ปลดล็อก: 1 = เปิดเฉพาะห้องแรก, 9 = เปิดครบทุกห้อง
   unlockLevel: 1,
 
   // ลำดับห้องทดลอง (ใช้เทียบกับ unlockLevel) — ห้ามสลับลำดับ
   order: [
-    'sim_memory_speed.html', // 1
-    'sim_overflow.html',     // 2
-    'sim_precedence.html',   // 3
-    'sim_trace.html',        // 4
-    'sim_array_train.html',  // 5
-    'sim_flowchart.html',    // 6
-    'sim_sort.html'          // 7
+    'sim_memory_speed.html',      // 1
+    'sim_network_map.html',       // 2  (เพิ่ม 1 ส.ค. 69: เครือข่าย LAN/MAN/WAN + Input/Process/Output — บทที่ 1)
+    'sim_compile_interpret.html', // 3  (เพิ่ม 1 ส.ค. 69: Compiler vs Interpreter — บทที่ 2)
+    'sim_overflow.html',          // 4
+    'sim_precedence.html',        // 5
+    'sim_trace.html',             // 6
+    'sim_flowchart.html',         // 7 (ปรับ 1 ส.ค. 69: ย้ายมาก่อน array_train เพราะตารางสอนใหม่สอน Flowchart ในวันที่ 3 ช่วงเช้า ก่อนอาร์เรย์ในช่วงบ่ายวันเดียวกัน)
+    'sim_array_train.html',       // 8
+    'sim_sort.html'               // 9
   ],
 
   // ล็อกรหัส + ป้ายราคา รายห้อง (ค่าเริ่มต้น: ไม่ล็อก ทุกห้องฟรี)
   labs: {
-    'sim_memory_speed.html': { locked: false, code: '', price: 'ฟรี' },
-    'sim_overflow.html':     { locked: false, code: '', price: 'ฟรี' },
-    'sim_precedence.html':   { locked: false, code: '', price: 'ฟรี' },
-    'sim_trace.html':        { locked: false, code: '', price: 'ฟรี' },
-    'sim_array_train.html':  { locked: false, code: '', price: 'ฟรี' },
-    'sim_flowchart.html':    { locked: false, code: '', price: 'ฟรี' },
-    'sim_sort.html':         { locked: false, code: '', price: 'ฟรี' }
+    'sim_memory_speed.html':      { locked: false, code: '', price: 'ฟรี' },
+    'sim_network_map.html':       { locked: false, code: '', price: 'ฟรี' },
+    'sim_compile_interpret.html': { locked: false, code: '', price: 'ฟรี' },
+    'sim_overflow.html':          { locked: false, code: '', price: 'ฟรี' },
+    'sim_precedence.html':        { locked: false, code: '', price: 'ฟรี' },
+    'sim_trace.html':             { locked: false, code: '', price: 'ฟรี' },
+    'sim_array_train.html':       { locked: false, code: '', price: 'ฟรี' },
+    'sim_flowchart.html':         { locked: false, code: '', price: 'ฟรี' },
+    'sim_sort.html':              { locked: false, code: '', price: 'ฟรี' }
   }
 };
